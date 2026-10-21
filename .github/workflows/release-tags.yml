@@ -1,0 +1,46 @@
+name: Tag plugin releases
+
+# After a merge to main, release every plugin whose plugin.json version has no
+# `<plugin>--v<version>` tag yet, through the same preflight as a manual release
+# (scripts/release.mjs → `claude plugin tag --push`). Dependency version ranges resolve
+# against these tags, so a forgotten tag breaks installs of dependent plugins.
+# See docs/RELEASES.md.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'plugins/**'
+      - '.claude-plugin/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-tags
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    env:
+      # Same pinned CLI as validate.yml; bump both together.
+      CLAUDE_CODE_VERSION: 2.1.306
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # existing tags are needed to skip released versions
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Claude Code CLI
+        run: npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
+
+      - name: Release untagged plugin versions
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          node scripts/tag-releases.mjs --push

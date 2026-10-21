@@ -9,7 +9,8 @@ reaches every consumer on their next update, so keep changes small and reviewabl
 | You are... | Edit |
 |---|---|
 | Adding a plugin | `plugins/<name>/` + one entry in `.claude-plugin/marketplace.json` + a line in `CODEOWNERS` + a row in `README.md` |
-| Changing a plugin | Files under `plugins/<name>/`, a `version` bump in its `plugin.json`, a `CHANGELOG.md` entry |
+| Changing a plugin | Files under `plugins/<name>/`, a `version` bump in its `plugin.json`, a `CHANGELOG.md` entry — CI tags the release after merge ([RELEASES.md](docs/RELEASES.md)) |
+| Rolling a plugin back | `node scripts/rollback.mjs <name> <good-version>`, then a PR ([RELEASES.md](docs/RELEASES.md#rollback)) |
 | Changing catalog metadata | `.claude-plugin/marketplace.json` only |
 | Changing rules or CI | `docs/`, `scripts/`, `.github/` — needs a catalog owner's review |
 

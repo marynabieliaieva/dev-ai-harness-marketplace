@@ -2,7 +2,7 @@
 
 Summary of the official Claude Code documentation and community practice used to set up
 this repository (October 2026, Claude Code 2.1.306). The rules that matter day to day are
-in [docs/](docs/); this file records where they come from.
+in [docs/](../); this file records where they come from.
 
 ## Official requirements
 

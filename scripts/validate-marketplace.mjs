@@ -108,6 +108,11 @@ function checkPlugin(entry, index, catalogNames) {
   if (!manifest.license) warn(mWhere, 'license is missing');
 
   for (const file of REQUIRED_PLUGIN_FILES) if (!existsSync(join(dir, file))) err(rel(dir), `${file} is missing`);
+  const changelog = join(dir, 'CHANGELOG.md');
+  const esc = String(manifest.version).replace(/[.+]/g, '\\$&');
+  // Same heading rule as scripts/release.mjs, so CI and the release preflight agree.
+  if (existsSync(changelog) && !new RegExp(`^#{1,3}\\s*\\[?v?${esc}\\]?(\\s|$)`, 'm').test(readFileSync(changelog, 'utf8')))
+    err(rel(changelog), `no "## [${manifest.version}]" entry for the version in plugin.json`);
   if (existsSync(join(dir, 'bin'))) err(rel(dir), 'top-level bin/ is not allowed — use scripts/');
   if (existsSync(join(dir, 'CLAUDE.md'))) err(rel(dir), 'CLAUDE.md in a plugin is not loaded — move it into a skill');
   if (!existsSync(join(dir, 'COMPATIBILITY.md'))) warn(rel(dir), 'COMPATIBILITY.md is missing');
