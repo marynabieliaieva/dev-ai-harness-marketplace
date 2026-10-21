@@ -1,0 +1,43 @@
+name: Validate marketplace
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      # Pin the CLI so validation rules don't change under us; bump deliberately.
+      CLAUDE_CODE_VERSION: 2.1.306
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Structural lint (repo rules)
+        run: node scripts/validate-marketplace.mjs
+
+      - name: Install Claude Code CLI
+        run: npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
+
+      # No --strict on the catalog: an empty plugins[] is a warning, and the
+      # structural lint above already fails on the rules we care about.
+      - name: Validate marketplace catalog
+        run: claude plugin validate .
+
+      - name: Validate each plugin
+        run: |
+          shopt -s nullglob
+          status=0
+          for dir in plugins/*/; do
+            echo "::group::$dir"
+            claude plugin validate "$dir" || status=1
+            echo "::endgroup::"
+          done
+          exit $status

@@ -1,0 +1,16 @@
+# Default owners for everything not matched below (catch-all).
+# Together with a branch ruleset ("Require review from Code Owners") this makes
+# every PR need approval from the responsible team.
+*                                   @marynabieliaieva
+
+# Catalog, CI and policy — changing these affects every plugin.
+/.claude-plugin/                    @marynabieliaieva
+/.github/                           @marynabieliaieva
+/scripts/                           @marynabieliaieva
+/docs/SECURITY.md                   @marynabieliaieva
+
+# Per-plugin owners — add one line per plugin when it lands, e.g.:
+# /plugins/engineering-paved-path/  @org/platform-team
+# /plugins/research-tools/          @org/ai-engineering
+# /plugins/architecture-review/     @org/architecture
+# /plugins/sdd-engineering/         @org/ai-engineering

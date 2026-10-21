@@ -1,0 +1,12 @@
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+.claude/settings.local.json
+
+# Generated catalog site (built in CI, never committed)
+site/dist/
+site/public/index.json
+site/public/releases.json
+site/public/stats.json
+site/public/bodies/
