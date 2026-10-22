@@ -83,12 +83,34 @@ Claude Code has no channel concept, and one marketplace serves one version of a 
 Channels are separate marketplaces with **different `name`s** whose entries pin
 different refs:
 
-| Channel | Marketplace name | Entry source |
-|---|---|---|
-| latest | `dev-digest-ai-marketplace` | `main` of this repo |
-| stable | `dev-digest-ai-marketplace-stable` | `ref`/`sha` of the last verified release |
+| Channel | Marketplace name | Catalog | Entry source |
+|---|---|---|---|
+| latest | `dev-digest-ai-marketplace` | `.claude-plugin/marketplace.json` | `main` of this repo |
+| stable | `dev-digest-ai-marketplace-stable` | [`channels/stable/.claude-plugin/marketplace.json`](../channels/stable/.claude-plugin/marketplace.json) | `git-subdir` pinned to a release tag (`ref`) and its commit (`sha`) |
 
-Users choose a channel by which marketplace they add (or `#<ref>` on the add command).
+Users choose a channel by which marketplace they add:
+
+```sh
+# latest
+claude plugin marketplace add marynabieliaieva/dev-ai-harness-marketplace --scope project
+# stable
+claude plugin marketplace add https://raw.githubusercontent.com/marynabieliaieva/dev-ai-harness-marketplace/main/channels/stable/.claude-plugin/marketplace.json --scope project
+```
+
+The stable catalog lists **every** plugin, because a bare dependency name resolves inside
+the same marketplace. CI validates it (`claude plugin validate channels/stable`).
+
+### Maintainers: move the stable channel
+
+Stable moves only to a release that passed its evals and a smoke run from `latest`. In a
+PR, change the plugin's entry in `channels/stable/.claude-plugin/marketplace.json`:
+
+- `ref` → the release tag, e.g. `sdd-engineering--v1.1.0`;
+- `sha` → the commit that tag points to: `git rev-parse <tag>^{commit}`.
+
+Never point stable at a branch. Consumers on stable get the new pin with
+`claude plugin marketplace update dev-digest-ai-marketplace-stable` and
+`claude plugin update <plugin>@dev-digest-ai-marketplace-stable`.
 
 ## Rollback
 
@@ -118,25 +140,54 @@ that only the bad version satisfied, release a fixed version instead of rolling 
 
 ### Consumers: switch to the stable channel
 
-> The stable channel is not set up yet; until it is, consumers wait for the rollback
-> release above.
+To return a consumer to a verified version before the fix is released. Use the scope the
+plugin was installed in (`claude plugin list` shows it); the examples use `project`.
 
-To return a consumer to a verified version before the fix is released:
-
-1. Remove the current plugin (and channel if needed):
+1. Leave `latest`. `--prune -y` also removes the dependencies it auto-installed, so the
+   same agents and skills aren't loaded twice from two channels; `--keep-data` keeps the
+   plugin's data directory (`~/.claude/plugins/data/<id>/`):
    ```sh
-   claude plugin uninstall <plugin>@dev-digest-ai-marketplace --scope project --keep-data
+   claude plugin uninstall <plugin>@dev-digest-ai-marketplace --scope project --keep-data --prune -y
    ```
-2. Install from the stable channel, whose catalog pins the verified release by `ref`/`sha`:
+2. Install from `stable`; its dependencies come from the same catalog:
    ```sh
-   claude plugin marketplace add <stable-marketplace-source> --scope project
+   claude plugin marketplace add https://raw.githubusercontent.com/marynabieliaieva/dev-ai-harness-marketplace/main/channels/stable/.claude-plugin/marketplace.json --scope project
    claude plugin install <plugin>@dev-digest-ai-marketplace-stable --scope project
+   claude plugin list --json   # version and gitCommitSha match the stable pins
    ```
-   A marketplace is identified by its `name`, so the stable catalog must not reuse
-   `dev-digest-ai-marketplace`.
 3. `/reload-plugins` or a new session, then run the plugin's smoke eval.
-4. Return to `latest` only after the fix is released and verified. If the bad version
-   changed external state, document how to restore it in the incident notes.
+4. Return to `latest` only after the fix is released and verified:
+   ```sh
+   claude plugin uninstall <plugin>@dev-digest-ai-marketplace-stable --scope project --keep-data --prune -y
+   claude plugin marketplace remove dev-digest-ai-marketplace-stable
+   claude plugin install <plugin>@dev-digest-ai-marketplace --scope project
+   ```
+   If the bad version changed external state, document how to restore it in the incident
+   notes.
+
+**Plugin data and external state of this marketplace's plugins.** No plugin here uses a
+persistent data directory (`${CLAUDE_PLUGIN_DATA}`), so switching channels loses nothing.
+`sdd-engineering` writes only project files — `specs/`, `docs/plans/`, `docs/retro/ledger/`,
+`INSIGHTS.md` — which stay in the repository and stay readable across 1.x: 1.1.0 adds
+`AC missing:` entries inside the existing `[NEEDS CLARIFICATION]` section, which 1.0.0
+also treats as open items.
+
+### Rehearsal: `sdd-engineering` 1.1.0 → stable 1.0.0 → latest
+
+Run in the consumer project after `sdd-engineering--v1.1.0` is tagged. Stable pins
+`sdd-engineering` to `1.0.0` until 1.1.0 has been verified.
+
+| Step | Commands | Check |
+|---|---|---|
+| Update to 1.1.0 | `claude plugin marketplace update dev-digest-ai-marketplace`<br>`claude plugin update sdd-engineering@dev-digest-ai-marketplace --scope project` | `claude plugin list --json` → `sdd-engineering` `1.1.0` |
+| Reload | `/reload-plugins` or a new session | — |
+| Smoke 1.1.0 | `claude --agent sdd-engineering:spec-creator` with a requirement that has no facts (e.g. "must be rate-limited", no numbers) | spec stays `draft` with `AC missing:`; the reply starts `Spec INCOMPLETE`; `implementation-planner` refuses it |
+| Roll back | steps 1–2 of "switch to the stable channel" above | `sdd-engineering` `1.0.0`, deps at their stable pins |
+| Smoke 1.0.0 | `/reload-plugins`, then the same `spec-creator` run | no `Spec INCOMPLETE` gate (1.0.0 behaviour); specs written under 1.1.0 still open |
+| Back to latest | step 4 above | `sdd-engineering` `1.1.0` again |
+
+There is no `claude plugin rollback`; the rehearsal uses only `uninstall`, `marketplace
+add`/`remove` and `install`.
 
 For a catalog entry change (not plugin content), revert it on `main` in a PR — don't
 rewrite history. See [SECURITY.md](SECURITY.md#after-an-unsafe-release)
