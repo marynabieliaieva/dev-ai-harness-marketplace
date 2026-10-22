@@ -7,3 +7,4 @@ link to these files from permanent docs.
 | File | Delete when |
 |---|---|
 | [MARKETPLACE-RESEARCH.md](MARKETPLACE-RESEARCH.md) | The first plugin is released and its rules live in `docs/` |
+| [PLUGIN-SUITE-SPEC.md](PLUGIN-SUITE-SPEC.md) | The SDD plugins are released and their READMEs cover it |

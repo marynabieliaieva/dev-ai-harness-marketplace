@@ -1,0 +1,66 @@
+name: Catalog site
+
+# Builds the catalog website on every pull request, as its own check ("Catalog site build"),
+# separate from the harness validation in validate.yml: a red mark here means the site is
+# broken, not the plugins. It generates the index from the repository, typechecks and
+# builds the React frontend, and writes a summary to the run page. Publishing happens in
+# pages.yml after merge. See docs/SITE-SPEC.md.
+#
+# No path filter on purpose: the check appears on every PR, so it is always visible and can
+# be made a required status check.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  site-build:
+    name: Catalog site build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Generate the catalog index
+        run: npm run build:index
+
+      - name: Install site dependencies
+        working-directory: site
+        run: npm ci
+
+      - name: Typecheck
+        working-directory: site
+        run: npm run typecheck
+
+      - name: Build
+        working-directory: site
+        run: npx vite build
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## Catalog site build"
+            if [ -f site/public/stats.json ]; then
+              node -e '
+                const s = require("./site/public/stats.json");
+                const types = Object.entries(s.byType).map(([t, n]) => `${n} ${t}`).join(", ");
+                console.log(`- Index: ${s.plugins} plugins, ${s.components} components (${types}), ${s.releases} releases`);
+              '
+            else
+              echo "- Index: not generated"
+            fi
+            if [ -d site/dist ]; then
+              echo "- Bundle: $(du -sh site/dist | cut -f1) in site/dist"
+            else
+              echo "- Bundle: not built"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,27 @@
+{
+  "name": "dev-digest-ai-marketplace-site",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Static catalog of the dev-digest-ai-marketplace plugins for GitHub Pages.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "dompurify": "^3.4.17",
+    "marked": "^14.1.4",
+    "minisearch": "^7.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.7.0",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.21"
+  }
+}

@@ -1,9 +1,9 @@
 name: Deploy site to GitHub Pages
 
-# Publishes the catalog website in site/ to https://<owner>.github.io/<repo>/.
-# The site is self-contained in site/ (relative URLs, hash routing), so it works
-# from that subpath without a build step. One-time setup: Settings → Pages →
-# Build and deployment → Source: "GitHub Actions".
+# Publishes the catalog website to https://<owner>.github.io/<repo>/: builds the index from
+# the repository (scripts/build-index.mjs), builds the React frontend in site/ and uploads
+# site/dist. Relative base + hash routing make it work from that subpath. One-time setup:
+# Settings → Pages → Build and deployment → Source: "GitHub Actions".
 
 on:
   push:
@@ -12,6 +12,7 @@ on:
       - 'site/**'
       - 'plugins/**'
       - '.claude-plugin/**'
+      - 'scripts/build-index.mjs'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -26,23 +27,34 @@ concurrency:
 
 jobs:
   build:
+    name: Catalog site build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Stage the site
-        # serve.mjs is the local preview server, not part of the site.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Build the catalog index
+        run: npm run build:index
+
+      - name: Build the site
+        working-directory: site
         run: |
-          mkdir -p _site
-          rsync -a --exclude serve.mjs site/ _site/
+          npm ci
+          npm run build
 
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
+          path: site/dist
 
   deploy:
+    name: Deploy to GitHub Pages
     needs: build
     runs-on: ubuntu-latest
     environment:
