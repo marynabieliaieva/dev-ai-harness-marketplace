@@ -32,6 +32,9 @@ jobs:
       - name: Validate marketplace catalog
         run: claude plugin validate .
 
+      - name: Validate the stable channel catalog
+        run: claude plugin validate channels/stable
+
       - name: Validate each plugin
         run: |
           shopt -s nullglob

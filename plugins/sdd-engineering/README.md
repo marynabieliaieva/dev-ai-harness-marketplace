@@ -24,7 +24,7 @@ Installing it also enables the three plugins it builds on:
 
 | Component | Kind | Writes | Role |
 |---|---|---|---|
-| `spec-creator` | agent (opus) | only `specs/<slug>/spec.md` | Turns a request and design sources into a testable spec with EARS acceptance criteria; asks about gaps, edge cases, cross-module interaction and UX instead of guessing |
+| `spec-creator` | agent (opus) | only `specs/<slug>/spec.md` | Turns a request and design sources into a testable spec with EARS acceptance criteria; asks about gaps, edge cases, cross-module interaction and UX instead of guessing; won't finish while a mandatory requirement has no AC |
 | `implementation-planner` | agent (opus) | only `docs/plans/<slug>.md` | Turns an approved spec into tasks with owned paths, measurable ACs, key constraints, the project's own check commands, a DAG and skills per task; asks single- vs. multi-agent mode |
 | `implementer` | agent (sonnet) | only its task's owned paths | Executes one task (or one fix task), applies the routed skills, self-verifies with the targeted Done-condition, ≤3 fix cycles |
 | `plan-verifier` | agent (sonnet) | nothing | Checks every AC and Done-condition against the real code: MET / PARTIAL / NOT MET / CANNOT VERIFY, with `file:line` evidence |
@@ -179,6 +179,7 @@ Behavior cases for `claude plugin eval` live in [`evals/`](evals/):
 |---|---|
 | `planner-refuses-draft-spec` | the planner stops at a spec without `Status: approved` |
 | `spec-creator-stays-in-specs` | the spec is written to `specs/`, with EARS criteria, and no code file |
+| `spec-creator-requires-ac-per-requirement` | a required behaviour with no facts gets an `AC missing:` entry, no invented number, and the spec is reported INCOMPLETE |
 | `implementer-stays-in-owned-paths` | the implementer edits only its owned paths and doesn't touch tests to go green |
 | `plan-verifier-flags-unmet-ac` | a deliberately unmet AC is reported NOT MET |
 | `run-plan-asks-for-plan` | `run-plan` without an argument asks instead of dispatching |
