@@ -14,3 +14,9 @@
 # /plugins/research-tools/          @org/ai-engineering
 # /plugins/architecture-review/     @org/architecture
 # /plugins/sdd-engineering/         @org/ai-engineering
+/plugins/engineering-paved-path/    @marynabieliaieva
+/plugins/research-tools/            @marynabieliaieva
+/plugins/architecture-review/       @marynabieliaieva
+/plugins/sdd-engineering/           @marynabieliaieva
+/evals/                             @marynabieliaieva
+/site/                              @marynabieliaieva
