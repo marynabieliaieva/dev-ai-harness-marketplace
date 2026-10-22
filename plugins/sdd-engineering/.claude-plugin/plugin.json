@@ -1,0 +1,14 @@
+{
+  "name": "sdd-engineering",
+  "version": "1.0.0",
+  "description": "Spec Driven Development workflow: spec-creator, implementation-planner, implementer and plan-verifier agents, /run-plan orchestration and /workflow-retro",
+  "author": { "name": "DevDigest AI Engineering" },
+  "license": "MIT",
+  "repository": "https://github.com/marynabieliaieva/dev-ai-harness-marketplace",
+  "keywords": ["sdd", "spec-driven-development", "workflow", "agents", "tdd", "planning"],
+  "dependencies": [
+    { "name": "research-tools", "version": "^1.0.0" },
+    { "name": "architecture-review", "version": "^1.0.0" },
+    { "name": "engineering-paved-path", "version": "^1.0.0" }
+  ]
+}

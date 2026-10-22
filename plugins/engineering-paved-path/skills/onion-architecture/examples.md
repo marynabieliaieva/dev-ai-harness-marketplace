@@ -1,0 +1,279 @@
+# Onion Architecture (Backend) — Examples
+
+Concrete before/after examples for each rule in [SKILL.md](SKILL.md). All
+examples use the reference module shape
+(`src/modules/<name>/{routes,service,repository,helpers,constants}.ts`)
+and the existing `shared/adapters.ts` + `container.ts` pattern.
+
+---
+
+## Adding a New External Integration (e.g. a Slack notifier)
+
+```ts
+// BAD: service.ts reaches for the SDK directly — not inverted, not mockable
+// src/modules/notifications/service.ts
+import { WebClient } from '@slack/web-api';
+
+export class NotificationService {
+  private slack = new WebClient(process.env.SLACK_TOKEN);
+
+  async notifyReviewDone(reviewId: string) {
+    await this.slack.chat.postMessage({ channel: '#reviews', text: `Review ${reviewId} done` });
+  }
+}
+```
+
+```ts
+// GOOD: port first, concrete implementation behind it, wired through the container
+
+// 1. shared/adapters.ts — the port
+export interface NotificationClient {
+  postMessage(channel: string, text: string): Promise<void>;
+}
+
+// 2. src/adapters/notifications/slack.ts — the concrete implementation
+import { WebClient } from '@slack/web-api';
+import type { NotificationClient } from '@app/shared';
+
+export class SlackNotificationClient implements NotificationClient {
+  private client = new WebClient(process.env.SLACK_TOKEN);
+  async postMessage(channel: string, text: string) {
+    await this.client.chat.postMessage({ channel, text });
+  }
+}
+
+// 3. src/adapters/mocks.ts — the test double
+export class MockNotificationClient implements NotificationClient {
+  sent: { channel: string; text: string }[] = [];
+  async postMessage(channel: string, text: string) {
+    this.sent.push({ channel, text });
+  }
+}
+
+// 4. src/platform/container.ts — the wiring. Note the async getter
+// shape, matching container.github()/container.llm() — this is the real
+// convention, not a same-line `new` in the constructor.
+export class Container {
+  private _notifications?: NotificationClient;
+
+  async notifications(): Promise<NotificationClient> {
+    if (this.overrides.notifications) return this.overrides.notifications;
+    if (this._notifications) return this._notifications;
+    const token = await this.secrets.get('SLACK_BOT_TOKEN');
+    this._notifications = new SlackNotificationClient(token);
+    return this._notifications;
+  }
+}
+
+// 5. src/modules/notifications/service.ts — depends on the port, not
+// the SDK. Takes the whole Container (the real convention ReviewService and
+// RepoService use) and pulls the port off it via the async getter, rather
+// than taking `NotificationClient` directly in the constructor — a service
+// that takes individual ports one by one doesn't match how existing modules
+// are wired and makes adding a second dependency an API-breaking change.
+export class NotificationService {
+  constructor(private container: Container) {}
+
+  async notifyReviewDone(reviewId: string) {
+    const notifications = await this.container.notifications();
+    await notifications.postMessage('#reviews', `Review ${reviewId} done`);
+  }
+}
+```
+
+`NotificationService` now never imports `@slack/web-api`. A unit test injects
+`MockNotificationClient` through `ContainerOverrides` exactly the way
+existing tests inject a mock `LLMProvider` or `GitHubClient` — no network
+call, no real Slack token needed.
+
+### Calling this service from another module
+
+`ReviewRunExecutor` (in the `reviews` module) needs to call
+`NotificationService.notifyReviewDone` when a run finishes. This skill's
+guidance doesn't cover cross-module calls as their own layer, so use this
+rule: instantiate the callee at the call site with `new NotificationService(
+this.container)`, the same way `RepoService` constructs `RepoRepository`
+directly rather than through a shared registry. Reserve a container-level
+facade getter (like `container.repoIntel`) for a subsystem with several
+independent consumers — a single caller doesn't need one.
+
+```ts
+// src/modules/reviews/run-executor.ts
+import { NotificationService } from '../notifications/service.js';
+
+export class ReviewRunExecutor {
+  private notifications: NotificationService;
+
+  constructor(private container: Container, /* ...other deps... */) {
+    this.notifications = new NotificationService(container);
+  }
+
+  private async onRunComplete(/* ... */) {
+    // Best-effort — a Slack outage must never fail the review run.
+    void this.notifications
+      .notifyReviewDone(reviewId)
+      .catch((err) => logger?.warn({ err }, 'notifications: failed to post'));
+  }
+}
+```
+
+---
+
+## A Repository Type Leaking Past the Service Boundary
+
+```ts
+// BAD: service.ts returns the raw Drizzle row — the domain layer now
+// depends on the database schema's shape
+// src/modules/repos/service.ts
+import type { RepoRow } from './repository.js';
+
+export class RepoService {
+  async get(id: string): Promise<RepoRow> {          // ← leaks $inferSelect outward
+    return this.repository.findById(id);
+  }
+}
+```
+
+```ts
+// GOOD: the repository owns the raw row type, the service maps it to the shared
+// domain type before it crosses the boundary
+// src/modules/repos/repository.ts
+type RepoRow = typeof t.repos.$inferSelect;           // raw type stays local to this file
+
+export class RepoRepository {
+  async findById(id: string): Promise<RepoRow> { /* ... */ }
+}
+
+// src/modules/repos/helpers.ts
+import type { Repo } from '@app/shared';         // the Zod-derived domain type
+
+export function toRepoDto(row: RepoRow): Repo {
+  return { id: row.id, fullName: row.fullName, /* ... */ };
+}
+
+// src/modules/repos/service.ts
+export class RepoService {
+  async get(id: string): Promise<Repo> {               // ← public signature is domain-typed
+    const row = await this.repository.findById(id);
+    return toRepoDto(row);
+  }
+}
+```
+
+The rule isn't "never import Drizzle's inferred types" — `repository.ts` is
+allowed to. The rule is that the **mapping happens before the value leaves
+the module's infrastructure layer**, so nothing downstream (routes, other
+modules, the client via `shared`) ever has to know the database's column
+shape.
+
+---
+
+## Business Logic Sitting in the Wrong Layer
+
+```ts
+// BAD: routes.ts decides business rules inline
+// src/modules/reviews/routes.ts
+app.post('/reviews', async (req, reply) => {
+  const { repoId, prNumber } = req.body;
+  const repo = await repoService.get(repoId);
+  if (repo.reviewCount > 100 && !repo.isPremium) {     // ← business rule, wrong layer
+    return reply.code(402).send({ error: 'upgrade required' });
+  }
+  const review = await reviewService.create(repoId, prNumber);
+  return reply.send(review);
+});
+```
+
+```ts
+// GOOD: routes.ts stays transport-only, the rule lives in service.ts
+// src/modules/reviews/service.ts
+export class ReviewService {
+  async create(repoId: string, prNumber: number) {
+    const repo = await this.repos.get(repoId);
+    if (repo.reviewCount > 100 && !repo.isPremium) {
+      throw new QuotaExceededError(repoId);             // ← domain-meaningful error
+    }
+    return this.repository.create(repoId, prNumber);
+  }
+}
+
+// src/modules/reviews/routes.ts
+app.post('/reviews', async (req, reply) => {
+  try {
+    const review = await reviewService.create(req.body.repoId, req.body.prNumber);
+    return reply.send(review);
+  } catch (err) {
+    if (err instanceof QuotaExceededError) return reply.code(402).send({ error: 'upgrade required' });
+    throw err;
+  }
+});
+```
+
+`ReviewService.create` can now be unit-tested with a plain object standing in
+for `repos`/`repository` — no Fastify `inject()`, no HTTP status codes inside
+the test.
+
+---
+
+## A Pure `core/` Package as the Domain Center
+
+```ts
+// a pure core/ package never does this — importing a DB/GitHub client/filesystem
+// would break the "pure engine" guarantee the whole package exists for
+import { drizzle } from 'drizzle-orm/node-postgres'; // ← would never appear here
+import { readFileSync } from 'node:fs';                // ← would never appear here
+```
+
+```ts
+// what it does instead: the only side effect is one call through an
+// injected port, exactly like this skill's Application-layer rule
+export async function review(diff: Diff, provider: LLMProvider): Promise<Review> {
+  const prompt = buildPrompt(diff);
+  const raw = await provider.complete(prompt);           // ← the one injected side effect
+  return groundFindings(raw, diff);                        // pure, testable without a real LLM call
+}
+```
+
+When someone asks "what does a correctly-onioned application/domain layer
+look like," point them at a package shaped like this one: pure functions plus
+one injected port, nothing else. If the project has such a package, it is the
+best local example to copy.
+
+---
+
+## A Failure Path Built by Hand in the Route
+
+```ts
+// routes.ts — BAD: the route invents its own error body and status.
+// Clients now get { error: 'not_found' } here and { error: { code, ... } }
+// everywhere else.
+app.get<{ Params: { id: string } }>('/invoices/:id', async (req, reply) => {
+  const invoice = await service.get(req.params.id);
+  if (!invoice) return reply.code(404).send({ error: 'not_found' });
+  return invoice;
+});
+```
+
+```ts
+// routes.ts — GOOD: throw the domain error; app.ts's setErrorHandler renders
+// { error: { code: 'not_found', message, details } } with status 404.
+import { NotFoundError } from '../../platform/errors.js';
+
+app.get<{ Params: { id: string } }>('/invoices/:id', async (req) => {
+  const invoice = await service.get(req.params.id);
+  if (!invoice) throw new NotFoundError('Invoice not found');
+  return invoice;
+});
+```
+
+```ts
+// adapters/s3/exporter.ts — wrap the vendor exception so no S3 type reaches
+// the application layer, and the handler maps it to 502.
+import { ExternalServiceError } from '../../platform/errors.js';
+
+try {
+  await this.client.send(new PutObjectCommand(input));
+} catch (err) {
+  throw new ExternalServiceError('Report export failed', { cause: String(err) });
+}
+```

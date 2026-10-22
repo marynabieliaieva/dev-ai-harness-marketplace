@@ -1,0 +1,9 @@
+{
+  "name": "research-tools",
+  "version": "1.0.0",
+  "description": "Read-only researcher agent that answers one concrete question from the codebase or external sources, with cited evidence",
+  "author": { "name": "DevDigest AI Engineering" },
+  "license": "MIT",
+  "repository": "https://github.com/marynabieliaieva/dev-ai-harness-marketplace",
+  "keywords": ["research", "agent", "web-search"]
+}

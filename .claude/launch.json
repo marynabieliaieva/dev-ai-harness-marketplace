@@ -3,9 +3,15 @@
   "configurations": [
     {
       "name": "site",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["site/serve.mjs", "4173"],
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "site", "run", "dev", "--", "--port", "4173", "--strictPort"],
       "port": 4173
+    },
+    {
+      "name": "site-preview",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "site", "run", "preview", "--", "--port", "4174"],
+      "port": 4174
     }
   ]
 }

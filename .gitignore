@@ -4,9 +4,10 @@ Thumbs.db
 *.log
 .claude/settings.local.json
 
-# Generated catalog site (built in CI, never committed)
+# Generated catalog site: scripts/build-index.mjs + vite (docs/SITE-SPEC.md), never committed
 site/dist/
 site/public/index.json
 site/public/releases.json
 site/public/stats.json
+site/public/feed.xml
 site/public/bodies/

@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: plan-verifier-flags-unmet-ac
+description: >
+  plan-verifier reads the code itself and marks an acceptance criterion the code does not meet
+  as NOT MET with file:line evidence, instead of trusting an implementer report that claims it
+  is done. Run with --scaffold.
+tags: [plan-verifier, adversarial]
+context:
+  scaffold_script: scaffold.sh

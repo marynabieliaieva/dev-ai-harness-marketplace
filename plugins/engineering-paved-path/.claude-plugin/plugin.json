@@ -1,0 +1,9 @@
+{
+  "name": "engineering-paved-path",
+  "version": "1.0.0",
+  "description": "Shared technical skills (security, TypeScript, React/Next.js, Fastify, Drizzle, Postgres, Zod, architecture, diagrams) with one home for every plugin that needs them",
+  "author": { "name": "DevDigest AI Engineering" },
+  "license": "MIT",
+  "repository": "https://github.com/marynabieliaieva/dev-ai-harness-marketplace",
+  "keywords": ["skills", "typescript", "react", "nextjs", "fastify", "drizzle", "postgresql", "zod", "security", "architecture"]
+}

@@ -5,5 +5,30 @@
   "owner": {
     "name": "DevDigest AI Engineering"
   },
-  "plugins": []
+  "plugins": [
+    {
+      "name": "engineering-paved-path",
+      "source": "./plugins/engineering-paved-path",
+      "description": "Shared technical skills (security, TypeScript, React/Next.js, Fastify, Drizzle, Postgres, Zod, architecture, diagrams) with one home for every plugin that needs them",
+      "category": "development"
+    },
+    {
+      "name": "research-tools",
+      "source": "./plugins/research-tools",
+      "description": "Read-only researcher agent that answers one concrete question from the codebase or external sources, with cited evidence",
+      "category": "productivity"
+    },
+    {
+      "name": "architecture-review",
+      "source": "./plugins/architecture-review",
+      "description": "Read-only architecture reviewer that checks a diff against the project's own layer and package boundary rules",
+      "category": "development"
+    },
+    {
+      "name": "sdd-engineering",
+      "source": "./plugins/sdd-engineering",
+      "description": "Spec Driven Development workflow: spec-creator, implementation-planner, implementer and plan-verifier agents, /run-plan orchestration and /workflow-retro",
+      "category": "development"
+    }
+  ]
 }
