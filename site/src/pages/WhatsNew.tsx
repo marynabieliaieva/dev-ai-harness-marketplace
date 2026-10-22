@@ -1,36 +1,37 @@
 import { CodeLine, useTitle } from '../components/ui';
+import { t } from '../i18n';
 import { asset, useCatalog } from '../lib/catalog';
-import { fmtDate, installId } from '../lib/format';
+import { fmtDate, fmtMonth, installId } from '../lib/format';
 import { hashFor } from '../lib/router';
 import type { Release } from '../lib/types';
 
 export function WhatsNew({ params }: { params: URLSearchParams }) {
   const { catalog, releases } = useCatalog();
-  useTitle("What's new");
+  useTitle(t.whatsNew.title);
   const only = params.get('plugin') ?? '';
   const list = releases.filter((r) => !only || r.plugin === only);
 
   const months = new Map<string, Release[]>();
   for (const r of list) {
-    const key = r.date ? new Date(`${r.date}T00:00:00`).toLocaleDateString('en', { month: 'long', year: 'numeric' }) : 'Undated';
+    const key = r.date ? fmtMonth(r.date) : t.whatsNew.undated;
     if (!months.has(key)) months.set(key, []);
     months.get(key)!.push(r);
   }
 
   return (
     <div className="page releases">
-      <nav className="crumbs" aria-label="Breadcrumb">
-        <a href="#/">Explore</a> / What's new
+      <nav className="crumbs" aria-label={t.common.breadcrumb}>
+        <a href="#/">{t.common.explore}</a> / {t.whatsNew.title}
       </nav>
       <div className="releases__head">
         <div className="page-title">
-          <h1>What's new</h1>
-          <p>Every plugin release, newest first. Users get a release when they update the plugin.</p>
+          <h1>{t.whatsNew.title}</h1>
+          <p>{t.whatsNew.intro}</p>
         </div>
         <div className="releases__filter">
-          <label htmlFor="release-filter">Plugin</label>
+          <label htmlFor="release-filter">{t.whatsNew.filter}</label>
           <select className="select" id="release-filter" value={only} onChange={(e) => (location.hash = hashFor('/whats-new', { plugin: e.target.value }))}>
-            <option value="">All plugins</option>
+            <option value="">{t.whatsNew.allPlugins}</option>
             {catalog.plugins.map((p) => (
               <option key={p.name} value={p.name}>
                 {p.displayName}
@@ -38,13 +39,13 @@ export function WhatsNew({ params }: { params: URLSearchParams }) {
             ))}
           </select>
           <a className="btn" href={asset('feed.xml')}>
-            Subscribe (Atom)
+            {t.whatsNew.subscribe}
           </a>
         </div>
       </div>
       {list.length === 0 && (
         <div className="empty">
-          <h2>No releases yet</h2>
+          <h2>{t.whatsNew.noReleases}</h2>
         </div>
       )}
       {[...months].map(([month, items]) => (
@@ -57,8 +58,8 @@ export function WhatsNew({ params }: { params: URLSearchParams }) {
                 <h3>
                   <a href={`#/plugin/${r.plugin}`}>{r.displayName}</a>
                   <code>v{r.version}</code>
-                  {r.breaking && <span className="tag tag--breaking">Breaking</span>}
-                  {r.firstRelease && <span className="tag tag--new">New plugin</span>}
+                  {r.breaking && <span className="tag tag--breaking">{t.common.breaking}</span>}
+                  {r.firstRelease && <span className="tag tag--new">{t.whatsNew.newPlugin}</span>}
                 </h3>
                 <ul>
                   {r.changes.map((c) => (

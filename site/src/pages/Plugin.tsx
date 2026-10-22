@@ -1,8 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useApp } from '../components/state';
 import { Badge, CodeLine, CopyButton, Markdown, useTitle } from '../components/ui';
+import { t } from '../i18n';
 import { useCatalog } from '../lib/catalog';
-import { TYPES, WEB_TOOLS, WRITE_TOOLS, fileUrl, fmtDate, initials, installId, plural, repoUrl, usage } from '../lib/format';
+import { TYPES, WEB_TOOLS, WRITE_TOOLS, fileUrl, fmtDate, initials, installId, repoUrl, usage } from '../lib/format';
 import { hashFor } from '../lib/router';
 import { load, save } from '../lib/storage';
 import type { ChangelogEntry, Component, ComponentType, Plugin as PluginT } from '../lib/types';
@@ -11,6 +12,7 @@ import { NotFound } from './NotFound';
 type Level = 'ok' | 'info' | 'warn';
 
 function trustItems(p: PluginT): [Level, string, ReactNode][] {
+  const m = t.plugin.trustItems;
   const items: [Level, string, ReactNode][] = [];
   const hooks = p.components.filter((c) => c.type === 'hook');
   const mcp = p.components.filter((c) => c.type === 'mcp');
@@ -21,19 +23,19 @@ function trustItems(p: PluginT): [Level, string, ReactNode][] {
 
   if (hooks.length) {
     const events = hooks.map((h) => `${h.event}${h.matcher ? ` (${h.matcher})` : ''}`).join(', ');
-    items.push(['warn', '!', <><strong>Runs {plural(hooks.length, 'hook')}</strong> on your machine: {events}</>]);
-  } else items.push(['ok', '✓', <><strong>No hooks</strong> run on your machine</>]);
+    items.push(['warn', '!', <><strong>{m.hooks(hooks.length)}</strong>{m.hooksOn(events)}</>]);
+  } else items.push(['ok', '✓', <><strong>{m.noHooks}</strong>{m.noHooksRest}</>]);
 
   const hosts = [...new Set(mcp.flatMap((m) => m.hosts ?? []))];
-  if (hosts.length) items.push(['warn', '↗', <><strong>Connects to</strong> {hosts.map((h) => <code key={h}>{h} </code>)}</>]);
-  if (browsers.length) items.push(['info', '↗', <><strong>Agents can browse the web:</strong> {browsers.map((a) => a.name).join(', ')}</>]);
-  if (!hosts.length && !browsers.length) items.push(['ok', '✓', <><strong>No network access</strong> declared</>]);
+  if (hosts.length) items.push(['warn', '↗', <><strong>{m.connectsTo}</strong> {hosts.map((h) => <code key={h}>{h} </code>)}</>]);
+  if (browsers.length) items.push(['info', '↗', <><strong>{m.browse}</strong> {browsers.map((a) => a.name).join(', ')}</>]);
+  if (!hosts.length && !browsers.length) items.push(['ok', '✓', <><strong>{m.noNetwork}</strong>{m.noNetworkRest}</>]);
 
-  if (writers.length) items.push(['warn', '✎', <><strong>Agents can edit files or run commands:</strong> {writers.map((a) => a.name).join(', ')}</>]);
-  else if (agents.length) items.push(['ok', '✓', <><strong>Agents are read-only</strong></>]);
+  if (writers.length) items.push(['warn', '✎', <><strong>{m.writers}</strong> {writers.map((a) => a.name).join(', ')}</>]);
+  else if (agents.length) items.push(['ok', '✓', <><strong>{m.readOnly}</strong></>]);
 
   if (secrets.length)
-    items.push(['info', '*', <><strong>Asks for {plural(secrets.length, 'secret')}</strong> ({secrets.map((s) => s.key).join(', ')}), stored in your OS keychain</>]);
+    items.push(['info', '*', <><strong>{m.secrets(secrets.length)}</strong>{m.secretsRest(secrets.map((s) => s.key).join(', '))}</>]);
   return items;
 }
 
@@ -59,9 +61,9 @@ function ComponentRow({ p, c, target }: { p: PluginT; c: Component; target: stri
             <CopyButton text={use} />
           </>
         )}
-        {c.type === 'skill' && c.userInvocable === 'user-only' && chip('user-invoked only')}
+        {c.type === 'skill' && c.userInvocable === 'user-only' && chip(t.plugin.userOnly)}
         {c.tools?.map((t) => chip(t, WRITE_TOOLS.includes(t)))}
-        {c.type === 'hook' && [chip(c.event ?? ''), c.matcher ? chip(`matcher: ${c.matcher}`) : null]}
+        {c.type === 'hook' && [chip(c.event ?? ''), c.matcher ? chip(t.plugin.matcher(c.matcher)) : null]}
         {c.type === 'mcp' && [chip(c.transport ?? ''), ...(c.hosts ?? []).map((h) => chip(h))]}
       </div>
     </div>
@@ -82,19 +84,19 @@ function InstallPanel({ p }: { p: PluginT }) {
   };
   return (
     <>
-      <div className="seg" role="group" aria-label="Where to run">
+      <div className="seg" role="group" aria-label={t.plugin.whereToRun}>
         <button type="button" aria-pressed={mode === 'session'} onClick={() => pick('session')}>
-          In a session
+          {t.plugin.inSession}
         </button>
         <button type="button" aria-pressed={mode === 'shell'} onClick={() => pick('shell')}>
-          Shell · project
+          {t.plugin.inShell}
         </button>
       </div>
       {lines.map((l) => (
         <CodeLine key={l} text={l} />
       ))}
       <p className="hint">
-        {mode === 'shell' ? 'Commit the .claude/settings.json it writes so the whole team gets it.' : 'Skip the first line if you already added the marketplace.'}
+        {mode === 'shell' ? t.plugin.shellHint : t.plugin.sessionHint}
       </p>
     </>
   );
@@ -105,13 +107,13 @@ export function Plugin({ name, params }: { name: string; params: URLSearchParams
   const { stack, toggleStack } = useApp();
   const p = plugins.get(name);
   const target = params.get('c');
-  useTitle(p ? p.displayName : 'Not found');
+  useTitle(p ? p.displayName : t.notFound.title);
 
   useEffect(() => {
     if (target) document.getElementById(`c-${target.replace(':', '-')}`)?.scrollIntoView({ block: 'center' });
   }, [target, name]);
 
-  if (!p) return <NotFound message={`There is no plugin called “${name}”.`} />;
+  if (!p) return <NotFound message={t.notFound.plugin(name)} />;
 
   const groups = TYPES.filter((t): t is ComponentType => t !== 'plugin')
     .map((t) => [t, p.components.filter((c) => c.type === t)] as const)
@@ -120,8 +122,8 @@ export function Plugin({ name, params }: { name: string; params: URLSearchParams
 
   return (
     <div className="page">
-      <nav className="crumbs" aria-label="Breadcrumb">
-        <a href="#/">Explore</a> / {p.name}
+      <nav className="crumbs" aria-label={t.common.breadcrumb}>
+        <a href="#/">{t.common.explore}</a> / {p.name}
       </nav>
       <div className="layout">
         <div className="layout__main">
@@ -135,8 +137,8 @@ export function Plugin({ name, params }: { name: string; params: URLSearchParams
                 <div className="sub">
                   <code>{p.name}</code>
                   {p.version && <code style={{ fontWeight: 600 }}>v{p.version}</code>}
-                  {p.updatedAt && <span>Updated {fmtDate(p.updatedAt)}</span>}
-                  <span>by {p.author}</span>
+                  {p.updatedAt && <span>{t.plugin.updated(fmtDate(p.updatedAt))}</span>}
+                  <span>{t.plugin.by(p.author)}</span>
                 </div>
               </div>
             </div>
@@ -152,7 +154,7 @@ export function Plugin({ name, params }: { name: string; params: URLSearchParams
 
           <section className="section components" aria-labelledby="h-components">
             <h2 id="h-components">
-              Components <span className="faint" style={{ fontWeight: 500 }}>{p.components.length}</span>
+              {t.plugin.components} <span className="faint" style={{ fontWeight: 500 }}>{p.components.length}</span>
             </h2>
             {groups.map(([t, list]) => (
               <div className="group" key={t}>
@@ -171,20 +173,20 @@ export function Plugin({ name, params }: { name: string; params: URLSearchParams
 
           {p.readme && (
             <section className="section" aria-labelledby="h-docs">
-              <h2 id="h-docs">Documentation</h2>
+              <h2 id="h-docs">{t.plugin.documentation}</h2>
               <Markdown path={p.readme} base={fileUrl(catalog, `${p.source}/README.md`)} />
             </section>
           )}
 
           <section className="section" aria-labelledby="h-changelog">
-            <h2 id="h-changelog">Changelog</h2>
+            <h2 id="h-changelog">{t.plugin.changelog}</h2>
             <ol className="timeline">
               {p.changelog.map((e) => (
                 <li key={e.version} className={isBreaking(e) ? 'is-major' : ''}>
                   <span className="when">{fmtDate(e.date)}</span>
                   <h3>
                     <code>v{e.version}</code>
-                    {isBreaking(e) && <span className="tag tag--breaking">Breaking</span>}
+                    {isBreaking(e) && <span className="tag tag--breaking">{t.common.breaking}</span>}
                   </h3>
                   <ul>
                     {e.changes.map((c) => (
@@ -199,14 +201,14 @@ export function Plugin({ name, params }: { name: string; params: URLSearchParams
 
         <aside className="layout__aside">
           <div className="panel">
-            <h2>Install</h2>
+            <h2>{t.plugin.install}</h2>
             <InstallPanel p={p} />
             <button className="btn" type="button" aria-pressed={inStack} onClick={() => toggleStack(p.name)}>
-              {inStack ? '✓ In install builder' : '+ Add to install builder'}
+              {inStack ? t.plugin.inStack : t.plugin.addToStack}
             </button>
           </div>
           <div className="panel panel--loose">
-            <h2>Trust &amp; permissions</h2>
+            <h2>{t.plugin.trust}</h2>
             <ul className="trust">
               {trustItems(p).map(([lvl, ic, node], i) => (
                 <li key={i} className={`lvl-${lvl}`}>
@@ -218,54 +220,54 @@ export function Plugin({ name, params }: { name: string; params: URLSearchParams
               ))}
             </ul>
             <a className="panel__link" href={repoUrl(catalog, '/blob/main/docs/SECURITY.md')} target="_blank" rel="noopener noreferrer">
-              How plugins are reviewed →
+              {t.plugin.reviewed}
             </a>
           </div>
           <div className="panel panel--loose">
-            <h2>Details</h2>
+            <h2>{t.plugin.details}</h2>
             <dl className="kv">
-              <dt>Version</dt>
+              <dt>{t.plugin.version}</dt>
               <dd>
                 <code>{p.version ?? '—'}</code>
               </dd>
-              <dt>Claude Code</dt>
+              <dt>{t.plugin.claudeCode}</dt>
               <dd>
-                <code>{p.minClaudeCode ? `≥ ${p.minClaudeCode}` : 'any'}</code>
+                <code>{p.minClaudeCode ? t.common.minVersion(p.minClaudeCode) : t.common.any}</code>
               </dd>
-              <dt>License</dt>
+              <dt>{t.plugin.license}</dt>
               <dd>{p.license ?? '—'}</dd>
-              <dt>Owner</dt>
+              <dt>{t.plugin.owner}</dt>
               <dd>{p.author}</dd>
-              <dt>Source</dt>
+              <dt>{t.plugin.source}</dt>
               <dd>
                 <a href={repoUrl(catalog, `/tree/${catalog.marketplace.branch}/${p.source.replace(/^\.\//, '')}`)} target="_blank" rel="noopener noreferrer">
-                  GitHub ↗
+                  {t.common.github}
                 </a>
               </dd>
             </dl>
           </div>
           <div className="panel">
-            <h2>Dependencies</h2>
+            <h2>{t.plugin.dependencies}</h2>
             {p.dependencies.length ? (
               <>
                 <ul className="deps">
                   {p.dependencies.map((d) => (
                     <li key={d.name}>
                       <a href={`#/plugin/${d.name}`}>{d.name}</a>
-                      <code>{d.version ?? 'any'}</code>
+                      <code>{d.version ?? t.common.any}</code>
                     </li>
                   ))}
                 </ul>
-                <p className="hint">Installed automatically with this plugin.</p>
+                <p className="hint">{t.plugin.depsHint}</p>
               </>
             ) : (
               <p className="muted" style={{ fontSize: 13 }}>
-                None
+                {t.common.none}
               </p>
             )}
             {p.usedBy.length > 0 && (
               <>
-                <h2 style={{ marginTop: 6 }}>Used by</h2>
+                <h2 style={{ marginTop: 6 }}>{t.plugin.usedBy}</h2>
                 <ul className="deps">
                   {p.usedBy.map((n) => (
                     <li key={n}>

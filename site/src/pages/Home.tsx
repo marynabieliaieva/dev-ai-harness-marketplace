@@ -1,8 +1,9 @@
 import { Card } from '../components/Card';
 import { Examples, SearchBox } from '../components/SearchBox';
 import { useTitle } from '../components/ui';
+import { t } from '../i18n';
 import { useCatalog } from '../lib/catalog';
-import { TYPE_PLURAL, plural } from '../lib/format';
+import { TYPE_PLURAL } from '../lib/format';
 import { hashFor } from '../lib/router';
 import type { Doc } from '../lib/search';
 import type { ComponentType } from '../lib/types';
@@ -17,16 +18,13 @@ export function Home({ docs }: { docs: Doc[] }) {
   return (
     <>
       <section className="hero">
-        <h1>Find the right skill, agent or plugin</h1>
-        <p>
-          Search {plural(plugins.length, 'plugin')} and {plural(componentCount, 'component')} for Claude Code. Describe what you need in plain
-          words.
-        </p>
+        <h1>{t.home.heading}</h1>
+        <p>{t.home.intro(plugins.length, componentCount)}</p>
         <SearchBox value="" />
         <Examples />
       </section>
       <div className="toolbar">
-        <div className="tabs" role="toolbar" aria-label="Browse by type">
+        <div className="tabs" role="toolbar" aria-label={t.home.browseByType}>
           {byType.map(([t, n]) => (
             <a key={t} className={`tab t-${t}`} href={hashFor('/search', { type: t })}>
               <span className="dot" />
@@ -35,10 +33,10 @@ export function Home({ docs }: { docs: Doc[] }) {
           ))}
         </div>
         <a className="toolbar__note" href="#/getting-started">
-          New here? Getting started →
+          {t.home.newHere}
         </a>
       </div>
-      <p className="result-meta">Browse all {plural(plugins.length, 'plugin')} in {catalog.marketplace.name}</p>
+      <p className="result-meta">{t.home.browseAll(plugins.length, catalog.marketplace.name)}</p>
       <div className="grid">
         {plugins.map((d) => (
           <Card key={d.id} doc={d} />

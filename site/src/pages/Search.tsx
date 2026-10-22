@@ -3,8 +3,9 @@ import { useMemo } from 'react';
 import { Card } from '../components/Card';
 import { Examples, SearchBox } from '../components/SearchBox';
 import { useTitle } from '../components/ui';
+import { t } from '../i18n';
 import { useCatalog } from '../lib/catalog';
-import { TYPES, TYPE_PLURAL, plural, repoUrl } from '../lib/format';
+import { TYPES, TYPE_PLURAL, repoUrl } from '../lib/format';
 import { hashFor } from '../lib/router';
 import { search, type Doc } from '../lib/search';
 import type { DocType } from '../lib/types';
@@ -14,7 +15,7 @@ export function Search({ ms, docMap, params }: { ms: MiniSearch<Doc>; docMap: Ma
   const q = params.get('q') ?? '';
   const explicit = (params.get('type') as DocType | 'all' | null) ?? null;
   const hasQuery = q.trim() !== '';
-  useTitle(hasQuery ? `“${q}”` : 'Search');
+  useTitle(hasQuery ? t.search.queryTitle(q) : t.search.title);
 
   const all = useMemo(() => search(ms, docMap, q, 'all', false), [ms, docMap, q]);
   const { hits, terms, intentType, effectiveType } = useMemo(
@@ -24,10 +25,10 @@ export function Search({ ms, docMap, params }: { ms: MiniSearch<Doc>; docMap: Ma
 
   const counts = Object.fromEntries(TYPES.map((t) => [t, 0])) as Record<DocType, number>;
   for (const h of all.hits) counts[h.doc.type]++;
-  const tabs: [DocType | 'all', string, number][] = [['all', 'All', all.hits.length], ...TYPES.map((t): [DocType, string, number] => [t, TYPE_PLURAL[t], counts[t]])];
+  const tabs: [DocType | 'all', string, number][] = [['all', t.search.all, all.hits.length], ...TYPES.map((t): [DocType, string, number] => [t, TYPE_PLURAL[t], counts[t]])];
   const setType = (t: DocType | 'all') => hashFor('/search', { q, type: t === 'all' ? null : t });
 
-  const requestUrl = repoUrl(catalog, `/issues/new?labels=plugin-request&title=${encodeURIComponent(`Skill request: ${q}`.slice(0, 120))}`);
+  const requestUrl = repoUrl(catalog, `/issues/new?labels=plugin-request&title=${encodeURIComponent(t.search.requestIssueTitle(q).slice(0, 120))}`);
 
   return (
     <>
@@ -36,7 +37,7 @@ export function Search({ ms, docMap, params }: { ms: MiniSearch<Doc>; docMap: Ma
         {!hasQuery && <Examples />}
       </section>
       <div className="toolbar">
-        <div className="tabs" role="toolbar" aria-label="Filter by type">
+        <div className="tabs" role="toolbar" aria-label={t.search.filterLabel}>
           {tabs
             .filter(([t, , n]) => t === 'all' || n > 0 || t === effectiveType)
             .map(([t, label, n]) => (
@@ -46,22 +47,21 @@ export function Search({ ms, docMap, params }: { ms: MiniSearch<Doc>; docMap: Ma
               </a>
             ))}
         </div>
-        <span className="toolbar__note">{hasQuery ? 'Sorted by relevance' : 'Sorted by name'}</span>
+        <span className="toolbar__note">{hasQuery ? t.search.byRelevance : t.search.byName}</span>
       </div>
       <p className="result-meta" aria-live="polite">
         {hasQuery ? (
           <>
-            {plural(hits.length, 'result')} for “{q}”
+            {t.search.resultsFor(hits.length, q)}
             {!explicit && intentType && (
               <>
-                {' '}
-                · showing {TYPE_PLURAL[intentType].toLowerCase()} because your search mentions “{intentType}”{' '}
-                <a href={hashFor('/search', { q, type: 'all' })}>Show all types</a>
+                {t.search.intent(TYPE_PLURAL[intentType].toLowerCase(), intentType)}
+                <a href={hashFor('/search', { q, type: 'all' })}>{t.search.showAllTypes}</a>
               </>
             )}
           </>
         ) : (
-          `${hits.length} ${effectiveType === 'all' ? (hits.length === 1 ? 'item' : 'items') : TYPE_PLURAL[effectiveType].toLowerCase()}`
+          effectiveType === 'all' ? t.count.items(hits.length) : `${hits.length} ${TYPE_PLURAL[effectiveType].toLowerCase()}`
         )}
       </p>
       {hits.length ? (
@@ -72,14 +72,14 @@ export function Search({ ms, docMap, params }: { ms: MiniSearch<Doc>; docMap: Ma
         </div>
       ) : (
         <div className="empty">
-          <h2>Nothing matches “{q}” yet</h2>
-          <p>Try fewer or different words, or browse everything. If it doesn't exist, ask for it.</p>
+          <h2>{t.search.noMatchTitle(q)}</h2>
+          <p>{t.search.noMatchText}</p>
           <div className="row">
             <a className="btn" href="#/search">
-              Clear search
+              {t.search.clearSearch}
             </a>
             <a className="btn btn--primary" target="_blank" rel="noopener noreferrer" href={requestUrl}>
-              Request this skill
+              {t.search.request}
             </a>
           </div>
         </div>

@@ -68,8 +68,8 @@ scripts/release.mjs, rollback.mjs # release preflight + tag, rollback as a new P
 scripts/tag-releases.mjs          # tags untagged versions after merge (release-tags.yml)
 scripts/build-index.mjs           # catalog data for the site (index, releases, stats, feed, bodies)
 site/                             # catalog website for GitHub Pages (React + TypeScript + Vite)
-.github/workflows/validate.yml    # CI on every pull request
-.github/workflows/site.yml        # builds index + site on pull requests
+.github/workflows/validate.yml    # "Harness validation" check on every pull request
+.github/workflows/site.yml        # "Catalog site build" check on every pull request
 .github/workflows/pages.yml       # builds and deploys site/dist to GitHub Pages
 CODEOWNERS  CONTRIBUTING.md
 ```
@@ -94,7 +94,8 @@ cd site && npm ci && npm run build && npm run preview   # http://localhost:4173
 (`npm run dev` in `site/` for live reload.) It uses relative URLs and hash routes, so
 GitHub Pages serves it from the repository subpath
 (`https://marynabieliaieva.github.io/dev-ai-harness-marketplace/`) as is.
-`.github/workflows/site.yml` builds the index and the site on pull requests;
+`.github/workflows/site.yml` builds the index and the site on every pull request as its own
+check, **Catalog site build**, separate from **Harness validation** (`validate.yml`);
 `.github/workflows/pages.yml` repeats the build on every push to `main` that touches
 `site/`, `plugins/` or the catalog, and publishes `site/dist`. One-time setup:
 **Settings → Pages → Source: GitHub Actions**.

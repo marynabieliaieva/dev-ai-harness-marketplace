@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 import { useApp } from '../components/state';
 import { CopyBlock, useTitle } from '../components/ui';
+import { t } from '../i18n';
 import { useCatalog } from '../lib/catalog';
-import { installId, plural } from '../lib/format';
+import { installId } from '../lib/format';
 import { hashFor } from '../lib/router';
 import type { Plugin } from '../lib/types';
 
@@ -26,7 +27,7 @@ function resolveDeps(plugins: Map<string, Plugin>, picked: Set<string>) {
 export function Stack({ params }: { params: URLSearchParams }) {
   const { catalog, plugins } = useCatalog();
   const { stack, toggleStack, setStack, copy } = useApp();
-  useTitle('Install builder');
+  useTitle(t.stack.title);
 
   // A shared link (#/stack?p=a,b) replaces the stack once, then the URL is cleaned up.
   const shared = params.get('p');
@@ -51,12 +52,12 @@ export function Stack({ params }: { params: URLSearchParams }) {
     2,
   );
   const steps: [string, string, string][] = [
-    [scope === 'project' ? 'Run in your project root' : 'Run in your shell', '', [`claude plugin marketplace add ${repo}${flag}`, ...picked.map((n) => `claude plugin install ${installId(catalog, n)}${flag}`)].join('\n')],
-    ['Or inside a Claude Code session', '', [`/plugin marketplace add ${repo}`, ...picked.map((n) => `/plugin install ${installId(catalog, n)}`)].join('\n')],
+    [scope === 'project' ? t.stack.runProject : t.stack.runShell, '', [`claude plugin marketplace add ${repo}${flag}`, ...picked.map((n) => `claude plugin install ${installId(catalog, n)}${flag}`)].join('\n')],
+    [t.stack.inSession, '', [`/plugin marketplace add ${repo}`, ...picked.map((n) => `/plugin install ${installId(catalog, n)}`)].join('\n')],
     ...(scope === 'project'
-      ? ([['Commit .claude/settings.json', 'The commands above write this file. You can also create it yourself: teammates get the plugins when they trust the folder.', settings]] as [string, string, string][])
+      ? ([[t.stack.commit, t.stack.commitNote, settings]] as [string, string, string][])
       : []),
-    ['Reload', 'Start a new session or run /reload-plugins.', ''],
+    [t.stack.reload, t.stack.reloadNote, ''],
   ];
 
   const item = (name: string, requiredBy?: string[]) => {
@@ -65,10 +66,10 @@ export function Stack({ params }: { params: URLSearchParams }) {
       <div key={name} className={`stack-item${requiredBy ? ' is-dep' : ''}`}>
         <div className="grow">
           <strong>{p.displayName}</strong>
-          <div className="note">{requiredBy ? `Installed automatically · required by ${requiredBy.join(', ')}` : 'Picked'}</div>
+          <div className="note">{requiredBy ? t.stack.requiredBy(requiredBy.join(', ')) : t.stack.picked}</div>
         </div>
         {!requiredBy && (
-          <button className="icon-btn" type="button" aria-label={`Remove ${p.displayName}`} onClick={() => toggleStack(name)}>
+          <button className="icon-btn" type="button" aria-label={t.stack.remove(p.displayName)} onClick={() => toggleStack(name)}>
             ✕
           </button>
         )}
@@ -78,18 +79,18 @@ export function Stack({ params }: { params: URLSearchParams }) {
 
   return (
     <div className="page">
-      <nav className="crumbs" aria-label="Breadcrumb">
-        <a href="#/">Explore</a> / Install builder
+      <nav className="crumbs" aria-label={t.common.breadcrumb}>
+        <a href="#/">{t.common.explore}</a> / {t.stack.title}
       </nav>
       <div className="layout">
         <div className="layout__main">
           <div className="page-title">
-            <h1>Install builder</h1>
-            <p>Pick plugins, choose who gets them, and copy the commands, or a settings file to commit for your team.</p>
+            <h1>{t.stack.title}</h1>
+            <p>{t.stack.intro}</p>
           </div>
 
           <section className="section" aria-labelledby="h-pick">
-            <h2 id="h-pick">Pick plugins</h2>
+            <h2 id="h-pick">{t.stack.pick}</h2>
             <div className="pick">
               {catalog.plugins.map((p) => (
                 <label key={p.name}>
@@ -97,7 +98,7 @@ export function Stack({ params }: { params: URLSearchParams }) {
                   <span>
                     <strong>{p.displayName}</strong>
                     <small>
-                      {plural(p.components.length, 'component')} · v{p.version}
+                      {t.count.components(p.components.length)} · v{p.version}
                     </small>
                   </span>
                 </label>
@@ -106,13 +107,13 @@ export function Stack({ params }: { params: URLSearchParams }) {
           </section>
 
           <section className="section" aria-labelledby="h-install">
-            <h2 id="h-install">Install</h2>
-            <div className="seg seg--wide" role="group" aria-label="Install scope">
+            <h2 id="h-install">{t.stack.install}</h2>
+            <div className="seg seg--wide" role="group" aria-label={t.stack.scopeLabel}>
               <a className="seg__btn" role="button" aria-pressed={scope === 'project'} href={hashFor('/stack')}>
-                Project · whole team
+                {t.stack.scopeProject}
               </a>
               <a className="seg__btn" role="button" aria-pressed={scope === 'user'} href={hashFor('/stack', { scope: 'user' })}>
-                User · just me
+                {t.stack.scopeUser}
               </a>
             </div>
             {picked.length ? (
@@ -132,9 +133,11 @@ export function Stack({ params }: { params: URLSearchParams }) {
               </ol>
             ) : (
               <div className="empty empty--sm">
-                <h3>No plugins picked yet</h3>
+                <h3>{t.stack.emptyTitle}</h3>
                 <p>
-                  Tick plugins above, or use “+” on any card in <a href="#/">Explore</a>.
+                  {t.stack.emptyBefore}
+                  <a href="#/">{t.common.explore}</a>
+                  {t.stack.emptyAfter}
                 </p>
               </div>
             )}
@@ -143,7 +146,7 @@ export function Stack({ params }: { params: URLSearchParams }) {
 
         <aside className="layout__aside">
           <div className="panel">
-            <h2>Your stack</h2>
+            <h2>{t.stack.yourStack}</h2>
             {picked.map((n) => item(n))}
             {[...deps].map(([n, by]) => item(n, [...by]))}
             {picked.length ? (
@@ -152,18 +155,18 @@ export function Stack({ params }: { params: URLSearchParams }) {
                   className="btn"
                   type="button"
                   onClick={() =>
-                    copy(`${location.origin}${location.pathname}${hashFor('/stack', { p: picked.join(','), scope: scope === 'user' ? 'user' : null })}`, 'Share link copied')
+                    copy(`${location.origin}${location.pathname}${hashFor('/stack', { p: picked.join(','), scope: scope === 'user' ? 'user' : null })}`, t.stack.shareCopied)
                   }
                 >
-                  Copy share link
+                  {t.stack.share}
                 </button>
                 <button className="btn" type="button" onClick={() => setStack([])}>
-                  Clear
+                  {t.common.clear}
                 </button>
               </div>
             ) : (
               <p className="muted" style={{ fontSize: 13 }}>
-                Empty
+                {t.common.empty}
               </p>
             )}
           </div>

@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { t } from '../i18n';
 import { load, save } from '../lib/storage';
 
 interface AppState {
@@ -33,7 +34,7 @@ export function AppProvider({ knownPlugins, children }: { knownPlugins: Set<stri
   }, []);
 
   const copy = useCallback(
-    async (text: string, label = `Copied: ${text}`) => {
+    async (text: string, label = t.common.copiedText(text)) => {
       try {
         await navigator.clipboard.writeText(text);
       } catch {

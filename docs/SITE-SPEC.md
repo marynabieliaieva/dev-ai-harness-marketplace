@@ -25,8 +25,12 @@ site/dist/  ──►  GitHub Pages
   committed**; `.gitignore` lists them.
 - `vite.config.ts` uses `base: './'` and the app uses hash routes, so the site works from
   the repository subpath (`https://<owner>.github.io/<repo>/`) with no server rewrites.
-- Pull requests build the index and the frontend (`.github/workflows/site.yml`); a push to
+- Every pull request builds the index and the frontend as its own check, **Catalog site
+  build** (`.github/workflows/site.yml`), separate from the harness checks; a push to
   `main` repeats the build and publishes `site/dist` (`.github/workflows/pages.yml`).
+- All UI text lives in one file, `site/src/i18n/en.ts`; components read it through `t`
+  from `site/src/i18n` and hardcode no strings. Catalog content (names, descriptions,
+  READMEs) comes from the index and is not translated.
 
 Local run:
 

@@ -1,5 +1,6 @@
+import { t } from '../i18n';
 import { useCatalog } from '../lib/catalog';
-import { fmtDate, installId, plural } from '../lib/format';
+import { fmtDate, installId } from '../lib/format';
 import type { Doc } from '../lib/search';
 import { useApp } from './state';
 import { Badge, CopyButton, Highlight } from './ui';
@@ -31,16 +32,16 @@ export function Card({ doc, terms = [] }: { doc: Doc; terms?: string[] }) {
         <Highlight text={doc.description} terms={terms} />
       </p>
       <div className="card__foot">
-        <span>{isPlugin ? `${plural(p.components.length, 'component')} · ${fmtDate(p.updatedAt)}` : `in ${p.displayName}`}</span>
+        <span>{isPlugin ? `${t.count.components(p.components.length)} · ${fmtDate(p.updatedAt)}` : t.card.inPlugin(p.displayName)}</span>
         <span className="actions">
-          <CopyButton className="btn btn--card" text={`/plugin install ${installId(catalog, p.name)}`} ariaLabel={`Copy install command for ${p.name}`}>
-            Copy install
+          <CopyButton className="btn btn--card" text={`/plugin install ${installId(catalog, p.name)}`} ariaLabel={t.card.copyInstallAria(p.name)}>
+            {t.card.copyInstall}
           </CopyButton>
           <button
             className="btn btn--card btn--stack"
             type="button"
             aria-pressed={inStack}
-            aria-label={`${inStack ? 'Remove' : 'Add'} ${p.name} ${inStack ? 'from' : 'to'} the install builder`}
+            aria-label={inStack ? t.card.removeFromStack(p.name) : t.card.addToStack(p.name)}
             onClick={() => toggleStack(p.name)}
           >
             {inStack ? '✓' : '+'}

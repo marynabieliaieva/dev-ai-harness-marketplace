@@ -1,13 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { t } from '../i18n';
 import { hashFor, replaceHash } from '../lib/router';
-
-export const EXAMPLES = [
-  'agent that writes a spec',
-  'skill to run an implementation plan',
-  'onion architecture',
-  'hook that guards file writes',
-  'research a library',
-];
 
 /** The hero search box. Typing updates #/search?q= in place, so the URL is shareable. */
 export function SearchBox({ value, autoFocus = false }: { value: string; autoFocus?: boolean }) {
@@ -32,7 +25,7 @@ export function SearchBox({ value, autoFocus = false }: { value: string; autoFoc
   return (
     <form className="search" role="search" onSubmit={(e) => e.preventDefault()}>
       <label className="sr-only" htmlFor="q">
-        Search the marketplace
+        {t.search.label}
       </label>
       <svg className="search__icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
         <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="2" />
@@ -45,7 +38,7 @@ export function SearchBox({ value, autoFocus = false }: { value: string; autoFoc
         autoComplete="off"
         spellCheck={false}
         value={q}
-        placeholder="e.g. agent that writes a spec"
+        placeholder={t.search.placeholder}
         onChange={(e) => {
           setQ(e.target.value);
           go(e.target.value);
@@ -63,8 +56,8 @@ export function SearchBox({ value, autoFocus = false }: { value: string; autoFoc
 
 export function Examples() {
   return (
-    <div className="examples" aria-label="Example searches">
-      {EXAMPLES.map((e) => (
+    <div className="examples" aria-label={t.search.examplesLabel}>
+      {t.search.examples.map((e) => (
         <button key={e} type="button" onClick={() => (location.hash = hashFor('/search', { q: e }))}>
           {e}
         </button>

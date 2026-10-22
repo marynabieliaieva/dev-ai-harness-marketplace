@@ -1,5 +1,6 @@
 import { useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AppProvider, useApp } from './components/state';
+import { t } from './i18n';
 import { CatalogContext, loadCatalog, useCatalog, type CatalogState } from './lib/catalog';
 import { fmtDate, repoUrl } from './lib/format';
 import { useRoute } from './lib/router';
@@ -14,10 +15,10 @@ import { Stack } from './pages/Stack';
 import { WhatsNew } from './pages/WhatsNew';
 
 const NAV: [section: string, href: string, label: string][] = [
-  ['explore', '#/', 'Explore'],
-  ['getting-started', '#/getting-started', 'Getting started'],
-  ['stack', '#/stack', 'Install builder'],
-  ['whats-new', '#/whats-new', "What's new"],
+  ['explore', '#/', t.shell.nav.explore],
+  ['getting-started', '#/getting-started', t.shell.nav.gettingStarted],
+  ['stack', '#/stack', t.shell.nav.stack],
+  ['whats-new', '#/whats-new', t.shell.nav.whatsNew],
 ];
 
 export function App() {
@@ -34,8 +35,8 @@ export function App() {
       <Shell>
         <div className="page">
           <div className="empty">
-            <h2>Catalog unavailable</h2>
-            <p>The catalog index could not be loaded. Try again in a minute.</p>
+            <h2>{t.shell.unavailableTitle}</h2>
+            <p>{t.shell.unavailableText}</p>
           </div>
         </div>
       </Shell>
@@ -43,7 +44,7 @@ export function App() {
   if (!state)
     return (
       <Shell>
-        <p className="loading">Loading the catalog…</p>
+        <p className="loading">{t.shell.loadingCatalog}</p>
       </Shell>
     );
 
@@ -136,19 +137,19 @@ function Shell({ children, section = '', showFooter = false }: { children: React
           document.getElementById('app')?.focus();
         }}
       >
-        Skip to content
+        {t.shell.skip}
       </a>
       <header className="topbar">
         <div className="topbar__inner">
           <a className="brand" href="#/">
             <span className="brand__mark" aria-hidden="true">
-              dd
+              {t.brand.mark}
             </span>
             <span>
-              DevDigest <span className="muted">Marketplace</span>
+              {t.brand.name} <span className="muted">{t.brand.suffix}</span>
             </span>
           </a>
-          <nav className="nav" aria-label="Main">
+          <nav className="nav" aria-label={t.shell.mainNav}>
             {NAV.map(([key, href, label]) => (
               <a key={key} href={href} aria-current={section === key ? 'page' : undefined}>
                 {label}
@@ -156,7 +157,7 @@ function Shell({ children, section = '', showFooter = false }: { children: React
               </a>
             ))}
           </nav>
-          <button className="theme-btn" type="button" onClick={toggleTheme} aria-label={light ? 'Switch to dark theme' : 'Switch to light theme'}>
+          <button className="theme-btn" type="button" onClick={toggleTheme} aria-label={light ? t.shell.themeToDark : t.shell.themeToLight}>
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
               <circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" strokeWidth="2" />
               <path
@@ -175,15 +176,15 @@ function Shell({ children, section = '', showFooter = false }: { children: React
       {showFooter && loaded && (
         <footer className="footer">
           <div className="footer__inner">
-            <span>Catalog updated {fmtDate(loaded.catalog.generatedAt)}</span>
-            <nav aria-label="Footer">
+            <span>{t.shell.updated(fmtDate(loaded.catalog.generatedAt))}</span>
+            <nav aria-label={t.shell.footerNav}>
               <a href={repoUrl(loaded.catalog, '/blob/main/CONTRIBUTING.md')} target="_blank" rel="noopener noreferrer">
-                Contribute a plugin
+                {t.shell.contribute}
               </a>
               <a href={repoUrl(loaded.catalog, '/blob/main/docs/SECURITY.md')} target="_blank" rel="noopener noreferrer">
-                Security
+                {t.shell.security}
               </a>
-              <a href="#/whats-new">Release feed</a>
+              <a href="#/whats-new">{t.shell.releaseFeed}</a>
             </nav>
           </div>
         </footer>

@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { t } from '../i18n';
 import { loadBody } from '../lib/catalog';
 import { TYPE_LABEL } from '../lib/format';
 import { renderMarkdown } from '../lib/markdown';
@@ -9,7 +10,7 @@ export function Badge({ type }: { type: DocType }) {
   return <span className={`badge t-${type}`}>{TYPE_LABEL[type]}</span>;
 }
 
-export function CopyButton({ text, label, className = 'btn btn--sm', children = 'Copy', ariaLabel }: {
+export function CopyButton({ text, label, className = 'btn btn--sm', children = t.common.copy, ariaLabel }: {
   text: string;
   label?: string;
   className?: string;
@@ -18,7 +19,7 @@ export function CopyButton({ text, label, className = 'btn btn--sm', children = 
 }) {
   const { copy } = useApp();
   return (
-    <button className={className} type="button" onClick={() => copy(text, label)} aria-label={ariaLabel ?? `Copy: ${text}`}>
+    <button className={className} type="button" onClick={() => copy(text, label)} aria-label={ariaLabel ?? t.common.copyAria(text)}>
       {children}
     </button>
   );
@@ -37,7 +38,7 @@ export function CopyBlock({ text }: { text: string }) {
   return (
     <div className="copy-wrap">
       <pre className="block">{text}</pre>
-      <CopyButton text={text} label="Copied" ariaLabel="Copy" />
+      <CopyButton text={text} label={t.common.copied} ariaLabel={t.common.copy} />
     </div>
   );
 }
@@ -80,8 +81,8 @@ export function Markdown({ path, base }: { path: string; base: string }) {
     };
   }, [path, base]);
 
-  if (!state) return <p className="muted">Loading…</p>;
-  if ('error' in state) return <p className="muted">Could not load this document ({state.error}).</p>;
+  if (!state) return <p className="muted">{t.common.loading}</p>;
+  if ('error' in state) return <p className="muted">{t.common.loadError(state.error)}</p>;
   // eslint-disable-next-line react/no-danger -- sanitized by DOMPurify in renderMarkdown
   return <div className="md" dangerouslySetInnerHTML={{ __html: state.html }} />;
 }
@@ -97,6 +98,6 @@ export function Empty({ title, children }: { title: string; children?: ReactNode
 
 export function useTitle(title: string) {
   useEffect(() => {
-    document.title = title ? `${title} — DevDigest Marketplace` : 'DevDigest Marketplace';
+    document.title = title ? t.common.pageTitle(title) : t.brand.title;
   }, [title]);
 }
