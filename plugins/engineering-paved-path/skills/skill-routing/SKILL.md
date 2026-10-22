@@ -15,11 +15,13 @@ link here instead of keeping their own copies of the table.
    exists, it is the authoritative map: its globs, its exclusions and its
    digest/full rules win over everything below. Do not merge it with the
    default map.
-2. **Otherwise use the default map** in section 3. Its globs assume a
-   `client/` (React/Next.js) + `server/` (TypeScript backend) layout; translate
-   them to the project's real folders once, from the project's `CLAUDE.md` /
-   `AGENTS.md` or its directory tree, and say in your report which mapping
-   you used.
+2. **Otherwise use the default map** in section 3. It names no folders: each
+   bucket is a *role* (the frontend package, the backend package, its
+   database layer) plus a file pattern inside it. Resolve each role to the
+   project's real folders once — from the project's `CLAUDE.md` / `AGENTS.md`
+   or its directory tree (`package.json` dependencies such as `react`,
+   `next`, `fastify`, `drizzle-orm` identify the package) — and say in your
+   report which mapping you used. A role the project doesn't have is skipped.
 
 To give a project its own map, copy [templates/skill-routing.md](templates/skill-routing.md)
 to `.claude/skill-routing.md` in that project and edit the globs.
@@ -49,21 +51,25 @@ to `.claude/skill-routing.md` in that project and edit the globs.
 
 ### Frontend
 
-| Skill | Default globs | Notes |
+`<frontend>` is the package that depends on `react`/`next`; `<backend>` is the
+TypeScript server package (e.g. the one that depends on `fastify`). In a
+single-package repository both are the repository root.
+
+| Skill | Default pattern | Notes |
 |---|---|---|
-| `frontend-ui-architecture` | `client/src/**` | Where a component/hook/util belongs; digest for authoring |
-| `react-best-practices` | `client/**/*.tsx`, `client/**/*.jsx` | Component/hook correctness |
-| `next-best-practices` | `client/src/app/**`, `client/next.config.*` | App Router, RSC boundaries, async APIs |
-| `react-testing-library` | `client/**/*.test.ts(x)` | Test files only |
+| `frontend-ui-architecture` | `<frontend>/src/**` | Where a component/hook/util belongs; digest for authoring |
+| `react-best-practices` | `<frontend>/**/*.tsx`, `<frontend>/**/*.jsx` | Component/hook correctness |
+| `next-best-practices` | the App Router folder (`<frontend>/**/app/**`), `next.config.*` | App Router, RSC boundaries, async APIs |
+| `react-testing-library` | `<frontend>/**/*.test.ts(x)` | Test files only |
 
 ### Backend
 
-| Skill | Default globs | Notes |
+| Skill | Default pattern | Notes |
 |---|---|---|
-| `onion-architecture` | `server/src/modules/**`, pure domain packages | Dependency direction, layer placement; digest for authoring |
-| `fastify-best-practices` | `server/src/**/routes.ts`, `server/src/app.ts`, `server/src/platform/**` | Routes, plugins, hooks, validation |
-| `drizzle-orm-patterns` | `server/src/db/**` (excluding migrations) | Schema and query authoring |
-| `postgresql-table-design` | `server/src/db/schema/**` | Schema design |
+| `onion-architecture` | `<backend>`'s module folders, pure domain packages | Dependency direction, layer placement; digest for authoring |
+| `fastify-best-practices` | `<backend>/**/routes.ts`, the Fastify app/bootstrap file, Fastify plugins | Routes, plugins, hooks, validation |
+| `drizzle-orm-patterns` | files importing `drizzle-orm` (excluding migrations) | Schema and query authoring |
+| `postgresql-table-design` | the Drizzle schema folder or SQL schema files | Schema design |
 
 ### Cross-cutting
 

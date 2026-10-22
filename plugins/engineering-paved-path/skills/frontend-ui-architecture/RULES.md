@@ -11,7 +11,7 @@ Placement — the reference layout below; the project's own conventions
   (+ optional `<Name>.test.tsx`, `helpers.ts`, `styles.ts`).
 - Shared/generic component (used by ≥2 routes/features) → `src/components/<kebab-case>/`.
 - Shared data hook → one file per domain in `src/lib/hooks/<domain>.ts`
-  (`agents.ts`, `reviews.ts`, …). Single-consumer hook → colocate with its component.
+  (`users.ts`, `orders.ts`, …). Single-consumer hook → colocate with its component.
 - Shared API contracts → wherever the project keeps them (a shared package or a
   vendored copy); never redefine a contract type inside a component.
 

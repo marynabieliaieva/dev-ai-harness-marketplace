@@ -110,7 +110,7 @@ owns, the contract between them, failure behaviour at each boundary).
 
 ```markdown
 # Spec: <feature>   |   Spec ID: SPEC-NN   |   Status: draft|approved|implemented
-Modules: <e.g. server/modules/reviews, client>
+Modules: <e.g. api/modules/billing, web>
 Supersedes: <link, if it replaces an older spec>
 
 ## Problem and why

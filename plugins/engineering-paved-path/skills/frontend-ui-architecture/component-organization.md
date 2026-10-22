@@ -233,8 +233,8 @@ Real projects apply these principles with their own variants. Two common
 ones, both consistent with the rules above:
 
 - **Domain-level hook files.** Data-fetching hooks grouped one file per
-  *domain* in a shared hooks folder (`lib/hooks/reviews.ts`,
-  `lib/hooks/agents.ts`), not one file per hook. A single-consumer hook
+  *domain* in a shared hooks folder (`lib/hooks/orders.ts`,
+  `lib/hooks/users.ts`), not one file per hook. A single-consumer hook
   still lives next to its component.
 - **`lib/` holding both pure utils and third-party client setup.** Some
   projects don't split a top-level `utils/` from `lib/`. The rule still

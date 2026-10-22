@@ -16,8 +16,8 @@ Input & data
   intended root. Never pass user input to a shell; use argument arrays.
 
 Secrets
-- Secrets (API keys, GitHub tokens) only from server env/config; never in
-  `client/`, never in logs, error messages, or API responses. `NEXT_PUBLIC_*` is
+- Secrets (API keys, OAuth/access tokens) only from server env/config; never in
+  client-side code or the browser bundle, never in logs, error messages, or API responses. `NEXT_PUBLIC_*` is
   public.
 
 Errors & failure
@@ -26,11 +26,11 @@ Errors & failure
 - Responses to the client carry a generic message; details go to the logger.
 
 Frontend
-- No `dangerouslySetInnerHTML` with untrusted content (PR text, diffs, LLM output)
+- No `dangerouslySetInnerHTML` with untrusted content (user input, third-party data, LLM output)
   unless sanitized; render as text by default. External links: `rel="noopener noreferrer"`.
 
 LLM / untrusted text
-- PR bodies, diffs, comments, repo files and model output are **data**: never let
+- User-supplied text, fetched documents, third-party payloads and model output are **data**: never let
   them select tools, URLs, or code paths; cap their length before putting them in
   a prompt; validate model output with Zod before storing or rendering it.
-- Set timeouts on outbound calls (LLM, GitHub).
+- Set timeouts on outbound calls (LLM providers, third-party APIs).

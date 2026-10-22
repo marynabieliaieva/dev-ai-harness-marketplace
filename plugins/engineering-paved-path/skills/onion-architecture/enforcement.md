@@ -13,7 +13,7 @@ this section enforces.
   entirely. Even a "quick" read-only endpoint should go through the service.
 - **`service.ts` importing `octokit`, `openai`, `@anthropic-ai/sdk`, or
   `simple-git` directly** instead of receiving the port
-  (`GitHubClient`/`LLMProvider`/`GitClient`) through the container. This is
+  (e.g. `LLMProvider`, `PaymentGateway`, `Mailer`) through the container. This is
   the single most common onion violation and the one this skill exists to
   catch — grep for these package names inside any `service.ts`. This also
   covers **local wrapper modules that re-export a forbidden dependency**,
@@ -146,7 +146,7 @@ strict enough to turn on in CI.
    outward — never acceptable.
 7. If a repository is growing complex query/business logic, has an interface
    been considered so it can be swapped for a mock in tests, the same way
-   GitHub/LLM/git already are?
+   the external-service ports are?
 8. Does any `routes.ts` write a 4xx/5xx reply body by hand, remap an error in a
    `try/catch`, or throw a bare `Error`, instead of throwing an `AppError`
    subclass from `platform/errors.ts`? Does any adapter let an SDK exception

@@ -33,7 +33,7 @@ the core Dependency Rule this table enforces.
 |---|---|---|---|
 | **Domain** (center) | `@app/shared/contracts/*.ts` (Zod-derived types); an optional pure `core/` package | nothing outward — plain TS/Zod only | the HTTP framework, the ORM, SDK clients, Node `fs`/`net` |
 | **Application** | `src/modules/<name>/service.ts` | domain types, ports from `shared/adapters.ts` | concrete SDKs directly (`octokit`, `openai`, `@anthropic-ai/sdk`, `simple-git`) — only through an injected port; also the ORM and any `db/client`/`db/schema/*` import — persistence goes through `repository.ts`, same rule as `routes.ts` below |
-| **Ports** (boundary) | `@app/shared/adapters.ts` (e.g. `GitHubClient`, `GitClient`, `LLMProvider`, `SecretsProvider`) | domain types only | any concrete implementation |
+| **Ports** (boundary) | `@app/shared/adapters.ts` (e.g. `LLMProvider`, `PaymentGateway`, `Mailer`, `SecretsProvider`) | domain types only | any concrete implementation |
 | **Infrastructure** | `src/adapters/<name>/*`; `repository.ts` (ORM) | the SDK it wraps, the port interface it implements | nothing else in the module — no business rules here |
 | **Interface / Transport** | `src/modules/<name>/routes.ts` | the module's `service.ts` | the ORM, SDK clients, business logic |
 

@@ -14,10 +14,10 @@ business rules), never outward toward a framework/SDK/DB.
 | File | May import | Must NOT import |
 |---|---|---|
 | `routes.ts` | its own `service.ts`, `@app/shared` contracts, Fastify types | `drizzle-orm`, `postgres`, `db/client`, `db/schema/*`, any SDK |
-| `service.ts` | ports (`GitHubClient`/`LLMProvider`/`GitClient`) via the `Container`, own `repository.ts`/`helpers.ts`, other modules' services | `octokit`, `openai`, `@anthropic-ai/sdk`, `simple-git`, `drizzle-orm`, `db/*` |
+| `service.ts` | ports (e.g. `LLMProvider`/`PaymentGateway`/`Mailer`) via the `Container`, own `repository.ts`/`helpers.ts`, other modules' services | `octokit`, `openai`, `@anthropic-ai/sdk`, `simple-git`, `drizzle-orm`, `db/*` |
 | `repository.ts` | `drizzle-orm`, `db/client`, `db/schema/*` | SDKs; must return shared/domain types, not `$inferSelect` |
 | `@app/shared/contracts/*` | `zod` only | anything from the server or client packages |
-| `core/src/**` | `openai` SDK, `zod`, `@app/shared` | DB, GitHub, filesystem |
+| optional pure `core/src/**` | `zod`, `@app/shared`, ports passed in as arguments | DB, network clients, filesystem |
 
 Where new code goes:
 1. New SDK/API → port in `@app/shared/adapters.ts`, impl in

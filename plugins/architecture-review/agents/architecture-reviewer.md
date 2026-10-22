@@ -28,13 +28,15 @@ this order, and print it under "Checks run":
      reserved for other agents) → **D-rules**;
    - the package list and how packages may import each other → **X-rules**;
    - a named architecture-check command or script, if any.
-2. **Declared rule sets.** Apply the built-in sets only where the project
-   declares them:
+2. **Declared rule sets.** Load `engineering-paved-path:skill-routing` once
+   to learn which skills the project routes the changed files to (its
+   `.claude/skill-routing.md`, if any — the default map alone declares
+   nothing). Apply the built-in sets only where the project declares them:
    - **A-rules + B1 (onion)** when the project's docs describe an onion /
-     layered / ports-and-adapters backend, or `.claude/skill-routing.md`
+     layered / ports-and-adapters backend, or the project's routing map
      routes backend files to `onion-architecture`.
    - **F-rules (frontend)** when the docs describe feature-based frontend
-     structure, or `.claude/skill-routing.md` routes client files to
+     structure, or the project's routing map routes client files to
      `frontend-ui-architecture`.
    Map every role the rules mention (`routes.ts`, `service.ts`,
    `repository.ts`, the shared-contracts package, the composition root) onto
@@ -54,10 +56,21 @@ Then:
 - Then cover what grep can't — A5 (business logic in the transport layer),
   F1–F4 (client placement) and P-rules that need judgment — by reading only
   the changed files those rules govern.
-- The rule ids below are self-contained. Load
-  `engineering-paved-path:onion-architecture` or
-  `engineering-paved-path:frontend-ui-architecture` only for a genuinely
-  ambiguous case — not up front.
+- The rule ids below are self-contained; the `engineering-paved-path`
+  skills behind them are loaded on demand, never up front:
+  - `engineering-paved-path:onion-architecture` — when the A-set applies and
+    a service/route imports a local module: follow its `enforcement.md`
+    "Searching for Indirect Violations" procedure for A3 (wrappers, type
+    aliases, another module's repository, module cycles), and its
+    `layer-map.md` to map roles onto the project's files.
+  - `engineering-paved-path:frontend-ui-architecture` — for an F-rule case
+    the reference layout doesn't settle (shared vs. route-local, hook
+    placement).
+  - `engineering-paved-path:zod` — when a changed file is a shared
+    contract (X3, A6), to tell a schema-composition import (`z.infer`,
+    `.extend`, `.pick` of another contract) from an outward dependency.
+  These skills explain the rules; findings still cite only the rule ids
+  below.
 
 ## Scope modes
 
@@ -222,7 +235,7 @@ is not described anywhere in the reply.
 - <count> pre-existing violation(s) in touched files, not introduced by this diff
 
 ### Rule profile
-- <sources read (e.g. AGENTS.md, server/AGENTS.md)> — sets applied: <P, A, B1, F, X, D>
+- <sources read (e.g. AGENTS.md, <package>/AGENTS.md)> — sets applied: <P, A, B1, F, X, D>
 
 ### Checks run
 - <rule ids checked> — <commands used>

@@ -50,9 +50,8 @@ export class MockNotificationClient implements NotificationClient {
   }
 }
 
-// 4. src/platform/container.ts — the wiring. Note the async getter
-// shape, matching container.github()/container.llm() — this is the real
-// convention, not a same-line `new` in the constructor.
+// 4. src/platform/container.ts — the wiring. Note the async lazy getter
+// shape (one getter per port), not a same-line `new` in the constructor.
 export class Container {
   private _notifications?: NotificationClient;
 
@@ -66,11 +65,11 @@ export class Container {
 }
 
 // 5. src/modules/notifications/service.ts — depends on the port, not
-// the SDK. Takes the whole Container (the real convention ReviewService and
-// RepoService use) and pulls the port off it via the async getter, rather
-// than taking `NotificationClient` directly in the constructor — a service
-// that takes individual ports one by one doesn't match how existing modules
-// are wired and makes adding a second dependency an API-breaking change.
+// the SDK. Takes the whole Container (the reference convention for services)
+// and pulls the port off it via the async getter, rather than taking
+// `NotificationClient` directly in the constructor — a service that takes
+// individual ports one by one makes adding a second dependency an
+// API-breaking change. If the project wires services differently, follow it.
 export class NotificationService {
   constructor(private container: Container) {}
 
@@ -82,9 +81,9 @@ export class NotificationService {
 ```
 
 `NotificationService` now never imports `@slack/web-api`. A unit test injects
-`MockNotificationClient` through `ContainerOverrides` exactly the way
-existing tests inject a mock `LLMProvider` or `GitHubClient` — no network
-call, no real Slack token needed.
+`MockNotificationClient` through `ContainerOverrides`, the same way tests
+inject a mock for every other port — no network call, no real Slack token
+needed.
 
 ### Calling this service from another module
 
@@ -92,10 +91,10 @@ call, no real Slack token needed.
 `NotificationService.notifyReviewDone` when a run finishes. This skill's
 guidance doesn't cover cross-module calls as their own layer, so use this
 rule: instantiate the callee at the call site with `new NotificationService(
-this.container)`, the same way `RepoService` constructs `RepoRepository`
+this.container)`, the same way a service constructs its own repository
 directly rather than through a shared registry. Reserve a container-level
-facade getter (like `container.repoIntel`) for a subsystem with several
-independent consumers — a single caller doesn't need one.
+facade getter for a subsystem with several independent consumers — a single
+caller doesn't need one.
 
 ```ts
 // src/modules/reviews/run-executor.ts

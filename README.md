@@ -43,7 +43,13 @@ Update: `claude plugin marketplace update dev-digest-ai-marketplace`, then
 | [architecture-review](plugins/architecture-review) | Read-only `architecture-reviewer` against the project’s own boundary rules |
 | [engineering-paved-path](plugins/engineering-paved-path) | Shared technical skills (architecture, security, TypeScript, React/Next.js, Fastify, Drizzle, Postgres, Zod) and skill routing |
 
-`sdd-engineering` depends on the other three; installing it enables them.
+Dependencies between them (installing a plugin enables what it depends on):
+
+```text
+sdd-engineering ──► research-tools
+       │        ──► architecture-review ──► engineering-paved-path
+       └──────────────────────────────────► engineering-paved-path
+```
 
 ## Repository layout
 

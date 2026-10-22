@@ -284,7 +284,7 @@ export const auth = (req, res, next) => {
 ```javascript
 app.use((err, req, res, next) => {
   res.status(500).json({
-    error: err.message,     // Could reveal: "Cannot read property of undefined at /app/server/src/..."
+    error: err.message,     // Could reveal: "Cannot read property of undefined at /app/src/..."
     stack: err.stack,       // Full file paths, line numbers, dependency versions
     query: req.query,       // Could echo back malicious input
     env: process.env.NODE_ENV // Confirms environment to attacker

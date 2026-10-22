@@ -88,14 +88,14 @@ concrete table of "this layer may import that, must not import this".
 2. **A new business rule or orchestration step** (combine two adapters, apply
    a policy, decide what happens next) → `service.ts`. It depends on ports
    (interfaces), never on the concrete adapter classes or the raw SDK. It
-   should take the whole `Container` in its constructor (matching
-   `ReviewService`/`RepoService`) and pull ports off it via the container's
-   getters, rather than taking individual ports as separate constructor
-   arguments.
+   should take the whole `Container` in its constructor and pull ports off it
+   via the container's getters, rather than taking individual ports as
+   separate constructor arguments (unless the project wires services
+   differently — then follow the project).
 3. **A new domain type or contract** (a shape shared across modules or
    packages, or validated at a boundary) → `@app/shared/contracts/*.ts`
-   as a Zod schema + inferred type. Remember it's manually duplicated to
-   `the client's copy of the contracts` — copy both sides by hand.
+   as a Zod schema + inferred type. If the client keeps its own copy of the
+   contracts instead of importing the shared package, update both sides.
 4. **A new HTTP endpoint** → `routes.ts`. It parses the request, calls exactly
    one `service.ts` method, and maps the result to a status/body. No query
    building, no SDK calls, no branching business logic here. Not every module
@@ -113,7 +113,7 @@ concrete table of "this layer may import that, must not import this".
    `notifications`) → instantiate the callee at the call site with `new
    OtherService(this.container)`, the same way `service.ts` files already
    construct their own `repository.ts`. Reserve a container-level facade
-   getter (like `container.repoIntel`) for a subsystem with several
+   getter for a subsystem with several
    independent consumers — a single caller doesn't need one. See
    [examples.md](examples.md) for a worked example.
 
