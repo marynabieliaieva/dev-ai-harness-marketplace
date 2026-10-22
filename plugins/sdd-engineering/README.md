@@ -79,8 +79,8 @@ Nothing has to be installed in the project. The agents read what is there:
 | `INSIGHTS.md` per package | known pitfalls and pre-existing failures | created by `engineering-insights` on first use |
 | `specs/README.md` | spec conventions | the defaults above |
 
-Paths the plugin writes: `specs/`, `docs/plans/`, `docs/retro/ledger/`, `INSIGHTS.md`, and
-`.claude/tmp/` for long command logs (add it to `.gitignore`).
+Paths the plugin writes: `specs/`, `docs/plans/`, `docs/retro/ledger/` and `INSIGHTS.md`.
+Agents keep scratch files in the session's scratchpad, never in the repository.
 
 ## Guarantees and their limits
 
@@ -95,14 +95,28 @@ Paths the plugin writes: `specs/`, `docs/plans/`, `docs/retro/ledger/`, `INSIGHT
 
 ## Evals
 
-Behavior cases for `claude plugin eval` live in [`evals/`](evals/). From this directory:
+Behavior cases for `claude plugin eval` live in [`evals/`](evals/). Run them against the
+**installed** plugin, not the directory:
 
 ```sh
-claude plugin eval . --scaffold --allow-tools Write Edit "Bash(node *)" "Bash(git *)"
+claude plugin eval sdd-engineering@dev-digest-ai-marketplace --scaffold --allow-tools Write Edit "Bash(node *)" "Bash(git *)"
 ```
+
+A path target (`claude plugin eval .`) loads only this plugin, without its dependencies;
+Claude Code then disables it as `dependency-unsatisfied`, so no `sdd-engineering` agent or
+skill exists in the run and every case measures nothing. Installing the plugin installs
+`research-tools`, `architecture-review` and `engineering-paved-path` with it. Use a
+project-scoped install in a scratch project if you don't want it in your user scope.
 
 `--scaffold` runs the cases' fixture scripts; `Bash` grants need an OS sandbox (macOS,
 Linux or WSL2). Cases tagged `needs-write`/`needs-shell` need those grants.
+
+For a quick check from the working tree, load all four plugins with `--plugin-dir`:
+
+```sh
+claude --plugin-dir ./plugins/engineering-paved-path --plugin-dir ./plugins/research-tools \
+  --plugin-dir ./plugins/architecture-review --plugin-dir ./plugins/sdd-engineering
+```
 
 ## Versions
 

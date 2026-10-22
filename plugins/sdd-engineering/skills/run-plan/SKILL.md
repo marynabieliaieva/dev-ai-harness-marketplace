@@ -150,7 +150,8 @@ as verified in step 2.
 ### 4. Final full run
 
 Run the plan's `Final verification` commands yourself — the only full suite runs
-in the whole flow. Integration lanes that need services (a database, a
+in the whole flow. Run each command as its own bare Bash call so its exit code
+comes from the tool result; never chain them or capture `$?` yourself. Integration lanes that need services (a database, a
 container runtime) are reported as **not run** when those services are
 unavailable or the runner reports 0 executed / all skipped — never as passed.
 

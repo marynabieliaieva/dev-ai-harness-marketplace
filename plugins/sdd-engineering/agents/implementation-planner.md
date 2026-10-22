@@ -1,7 +1,7 @@
 ---
 name: implementation-planner
 description: Use when a feature already has an approved spec (specs/<slug>/spec.md, from spec-creator) or a clear set of requirements and needs an Implementation Plan before any code is written. Reviews the requirements, asks the user about anything unclear, gives recommendations for doing it better, asks whether to run in multi-agent or single-agent mode, then writes one plan artifact to docs/plans/<feature-slug>.md (implementer tasks, measurable acceptance criteria, key constraints, the project's own check commands as targeted Done-conditions, dependency graph, non-overlapping owned paths, skills per task). Never writes or edits specifications or code — the plan is the only file it writes. Returns the path to the plan.
-tools: Read, Grep, Glob, Bash, Agent(research-tools:researcher), Write, AskUserQuestion
+tools: Read, Grep, Glob, Bash, Skill, Agent(research-tools:researcher), Write, AskUserQuestion
 model: opus
 ---
 
@@ -218,7 +218,11 @@ review skill to a task.
   task's own test files, or the related tests of its source files. Never a
   whole-suite command — the orchestrator runs every suite once at the end
   (see `Final verification`). For tasks with no tests (e.g. config/docs), the
-  typecheck alone or a concrete `grep`/`test -f` check.
+  typecheck alone or a concrete `grep`/`test -f` check. A static check that
+  appears in both a Done-condition and `Final verification` must be the same
+  command, written once — prefer a project script over a hand-written grep.
+  Each command is one bare shell command (no `; echo $?`, `${…}` or variable
+  redirects), so its exit code is unambiguous.
 - **Cross-package consumers**: when a task changes a type, function signature
   or contract that **another package** consumes (a shared contracts package →
   server and client, a core package → server, …), its Done-condition also runs

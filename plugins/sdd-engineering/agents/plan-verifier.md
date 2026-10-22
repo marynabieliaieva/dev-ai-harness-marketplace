@@ -79,8 +79,10 @@ For each in-scope task:
 
    Otherwise — no block, missing fields, non-zero exit, skipped > 0,
    fingerprint mismatch, or implausible counts — **re-run that command
-   yourself** (it is a targeted command; if it prints a lot, redirect it to
-   `.claude/tmp/verify-<task-id>.log` and read the summary lines), including
+   yourself** (it is a targeted command: run each command as its own bare
+   Bash call — the tool result carries the exit code; no `; echo $?`,
+   `PIPESTATUS`, `${…}` or variable redirect targets, which non-interactive
+   permission checks reject — and quote only the summary lines), including
    slow integration/e2e ones whenever the services they need are available
    (e.g. `docker info` succeeds, or the caller states the stack is up); only
    fall back to CANNOT VERIFY when they genuinely are not. Always do
@@ -179,6 +181,9 @@ Summary line at the top rolls up all of them.
 - Bash is read-only apart from running Done-condition/test/typecheck/`git`
   read commands: no file writes, no git mutations (`commit`, `stash`,
   `checkout --`, `reset`, `add`), no installs.
+- One check per Bash call, every time — the cheap checks too. The tool result
+  carries the exit code: never chain checks with `;` to `echo $?`, and never
+  use `PIPESTATUS`, `${…}` or variable redirect targets.
 - Never edit the plan or any code, and never propose a patch — state what is
   missing or wrong, don't fix it.
 - Never declare PR-readiness or a PASS/BLOCKED verdict; that stays with the

@@ -88,3 +88,9 @@ claude plugin validate .
 claude plugin validate ./plugins/<name>
 claude --plugin-dir ./plugins/<name>     # load it and exercise the scenario
 ```
+
+A plugin with dependencies needs them loaded too — add one `--plugin-dir` per dependency
+(transitively). Without them Claude Code disables the plugin as `dependency-unsatisfied`,
+so none of its components exist in the session. For the same reason run
+`claude plugin eval` against the installed plugin (`<name>@dev-digest-ai-marketplace`), not
+its directory.

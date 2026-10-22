@@ -47,6 +47,9 @@ Then load the plugin and exercise its scenario and evals:
 claude --plugin-dir ./plugins/<name>
 ```
 
+Add a `--plugin-dir` for each dependency as well; a plugin whose dependencies are missing is
+disabled (`dependency-unsatisfied`).
+
 Full install loop from your working copy:
 
 ```sh

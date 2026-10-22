@@ -78,10 +78,9 @@ discrepancy in your report.
 1. Write/edit the code (and the test files your task owns) for every file of
    the task inside your owned paths, applying the skills above.
 2. Run the task's **Done-condition** once all files are done — never after each
-   file. If the command prints a lot, keep the full log out of your context:
-   `mkdir -p .claude/tmp && <command> > .claude/tmp/<task-id>.log 2>&1; echo "exit=$?"`,
-   then read only the summary lines and the first errors from the log (`grep`,
-   `sed -n`). Don't rerun the command with extra verbosity.
+   file. If the Done-condition has several commands, run each as its own Bash
+   call (see "Shell hygiene"). Quote only the summary lines and the first
+   errors from the output; don't rerun the command with extra verbosity.
 3. On failure, fix and re-run. **At most 3 fix cycles.** After the 3rd failing
    run, stop and report under "Could not complete" with the last output.
 4. **Errors outside your owned paths are not yours.** If typecheck/tests fail
@@ -109,11 +108,17 @@ discrepancy in your report.
   error. Files may be CRLF; the Edit tool handles that.
 - **Use only the toolchain the project already has.** Don't assume Python,
   `jq` or other tools are installed; check before relying on one.
+- **One check per Bash call, run bare.** The tool result carries the exit
+  code. Never capture it yourself (`; echo $?`, `PIPESTATUS`), never use
+  `${…}` or a variable in a redirect target, and never pipe the
+  Done-condition through `tail`/`head` (the pipe hides the exit code).
+  Non-interactive permission checks reject those forms, and each rejection
+  costs a retry.
 - **Keep Bash calls one-line and read-only where possible.** Put long
   JSON/regex arguments in a scratch file instead of inline quotes.
-- **Never pipe the Done-condition through `tail`/`head`.** The pipe hides the
-  exit code. Run it bare (or redirected to a log as above) and report its own
-  exit code.
+- **Scratch files go in the session's scratchpad, never in the repository** —
+  not even temporarily, since anything outside your owned paths shows up in
+  the verifier's scope check.
 
 ## Skills self-check (mandatory, run before reporting)
 
