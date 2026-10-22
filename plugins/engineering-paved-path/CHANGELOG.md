@@ -5,6 +5,13 @@ versions: [SemVer](https://semver.org) — see [docs/RELEASES.md](../../docs/REL
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-22
+
+### Fixed
+
+- `zod`: the description no longer points to `react-hook-form` and `orval` skills, which
+  don't exist in this marketplace; it names what the skill doesn't cover instead.
+
 ## [1.0.0] - 2026-10-21
 
 ### Added
