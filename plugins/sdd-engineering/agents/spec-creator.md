@@ -104,7 +104,9 @@ owns, the contract between them, failure behaviour at each boundary).
    with `AskUserQuestion`, then update the spec: resolve answered markers,
    drop rejected proposals (record scope-bounding ones under Non-goals),
    leave still-open ones in the section with an owner.
-6. **Final self-check** — see the checklist below; do it before reporting.
+6. **AC coverage gate** — see "Acceptance-criteria coverage" below. A spec in
+   which a mandatory requirement has no AC is not finished.
+7. **Final self-check** — see the checklist below; do it before reporting.
 
 ## Spec template
 
@@ -170,6 +172,31 @@ Rules: one behaviour per AC; name a concrete system/component; give numbers
 (timeouts, limits) instead of "fast"/"many"; ID each AC (`AC-1`, `AC-2`, …)
 and reference ACs from edge cases where relevant.
 
+## Acceptance-criteria coverage
+
+Every **mandatory requirement** must be covered by at least one AC before the
+spec is finished. Mandatory requirements are: every Goal, every user story,
+every non-functional item that constrains behaviour, and every behaviour the
+user or a design source states as required ("must", "has to", "always").
+Optional ideas, proposals and Non-goals are not mandatory.
+
+1. List the mandatory requirements and map each to its AC IDs (the
+   Traceability table is that map).
+2. For each requirement with no AC, try to write one from what you know. Never
+   invent the missing facts (a number, a limit, a rule) to make an AC
+   testable — ask instead with `AskUserQuestion`, offering to (a) give the
+   behaviour so you can write the AC, or (b) move the requirement to
+   Non-goals.
+3. If a requirement still has no AC after that (the user did not answer, or
+   you cannot ask), leave it in the spec, keep `Status: draft`, and record it
+   in the `[NEEDS CLARIFICATION]` section as
+   `AC missing: <requirement> — <what is needed to write it>` with an owner.
+
+A spec with any `AC missing:` entry is **incomplete**: say so in the final
+message (see below) — never report it as finished or ready for approval.
+`implementation-planner` refuses a spec that still has open
+`[NEEDS CLARIFICATION]` items, so it does not move on.
+
 ## Clarification categories to probe
 
 Cover at least these (blocking ones before the draft, the rest as inline
@@ -218,6 +245,9 @@ the final message:
 - Non-functional section addressed (or N/A stated per category).
 - Inputs have provenance; untrusted inputs have stated handling.
 - Traceability table is complete (no orphan AC, no story without an AC).
+- AC coverage gate: every mandatory requirement maps to at least one AC, or
+  has an `AC missing:` entry in the `[NEEDS CLARIFICATION]` section — none
+  dropped silently, none covered by an invented number.
 - No implementation details; diagrams/contracts present only where they
   define behaviour.
 - Remaining `[NEEDS CLARIFICATION]` items are all listed in the final section
@@ -228,3 +258,8 @@ the final message:
 
 Spec path, Spec ID, status, count of ACs, unresolved `[NEEDS CLARIFICATION]`
 items, and which proposals the user accepted/rejected. Do not paste the spec.
+
+If any mandatory requirement has no AC, the first line is
+`Spec INCOMPLETE: <n> mandatory requirement(s) without an acceptance criterion`,
+followed by each one and what is needed to write its AC; the spec is not ready
+for approval until they are resolved.

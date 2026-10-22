@@ -54,7 +54,8 @@ sdd-engineering ──► research-tools
 ## Repository layout
 
 ```text
-.claude-plugin/marketplace.json   # the catalog: name, owner, plugins[]
+.claude-plugin/marketplace.json   # the catalog (latest channel): name, owner, plugins[]
+channels/stable/                  # stable channel catalog, pinned to release tags (docs/RELEASES.md)
 plugins/<name>/                   # one directory per plugin
 docs/
   PLUGIN-GUIDELINES.md            # plugin structure, manifest, dependencies

@@ -5,6 +5,21 @@ versions: [SemVer](https://semver.org) — see [docs/RELEASES.md](../../docs/REL
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-22
+
+### Added
+
+- `spec-creator`: an acceptance-criteria coverage gate. Every mandatory requirement (each
+  Goal, user story, behaviour-constraining NFR and stated "must") needs at least one AC. A
+  requirement it can't cover without inventing facts is kept, recorded as
+  `AC missing: …` under `[NEEDS CLARIFICATION]`, and the final message starts with
+  `Spec INCOMPLETE: …`. `implementation-planner` already refuses a spec with open
+  `[NEEDS CLARIFICATION]` items, so such a spec does not move on.
+- Behavior eval `spec-creator-requires-ac-per-requirement`.
+
+Backward compatible: the spec format is unchanged; `AC missing:` entries use the existing
+`[NEEDS CLARIFICATION]` section.
+
 ## [1.0.0] - 2026-10-21
 
 ### Added

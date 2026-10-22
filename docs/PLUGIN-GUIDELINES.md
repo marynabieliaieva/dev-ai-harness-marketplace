@@ -91,6 +91,8 @@ claude --plugin-dir ./plugins/<name>     # load it and exercise the scenario
 
 A plugin with dependencies needs them loaded too — add one `--plugin-dir` per dependency
 (transitively). Without them Claude Code disables the plugin as `dependency-unsatisfied`,
-so none of its components exist in the session. For the same reason run
-`claude plugin eval` against the installed plugin (`<name>@dev-digest-ai-marketplace`), not
-its directory.
+so none of its components exist in the session. `claude plugin eval` (checked on 2.1.308)
+loads the target without its dependencies even when the target is the installed plugin, so
+it can't evaluate a plugin that has dependencies: run those cases headless with every
+`--plugin-dir` instead (see `plugins/sdd-engineering/README.md` → Evals), and check a
+run's `plugin_errors` before trusting its score.

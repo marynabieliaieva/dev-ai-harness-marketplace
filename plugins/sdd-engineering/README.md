@@ -24,7 +24,7 @@ Installing it also enables the three plugins it builds on:
 
 | Component | Kind | Writes | Role |
 |---|---|---|---|
-| `spec-creator` | agent (opus) | only `specs/<slug>/spec.md` | Turns a request and design sources into a testable spec with EARS acceptance criteria; asks about gaps, edge cases, cross-module interaction and UX instead of guessing |
+| `spec-creator` | agent (opus) | only `specs/<slug>/spec.md` | Turns a request and design sources into a testable spec with EARS acceptance criteria; asks about gaps, edge cases, cross-module interaction and UX instead of guessing; won't finish while a mandatory requirement has no AC |
 | `implementation-planner` | agent (opus) | only `docs/plans/<slug>.md` | Turns an approved spec into tasks with owned paths, measurable ACs, key constraints, the project's own check commands, a DAG and skills per task; asks single- vs. multi-agent mode |
 | `implementer` | agent (sonnet) | only its task's owned paths | Executes one task (or one fix task), applies the routed skills, self-verifies with the targeted Done-condition, ≤3 fix cycles |
 | `plan-verifier` | agent (sonnet) | nothing | Checks every AC and Done-condition against the real code: MET / PARTIAL / NOT MET / CANNOT VERIFY, with `file:line` evidence |
@@ -179,32 +179,35 @@ Behavior cases for `claude plugin eval` live in [`evals/`](evals/):
 |---|---|
 | `planner-refuses-draft-spec` | the planner stops at a spec without `Status: approved` |
 | `spec-creator-stays-in-specs` | the spec is written to `specs/`, with EARS criteria, and no code file |
+| `spec-creator-requires-ac-per-requirement` | a required behaviour with no facts gets an `AC missing:` entry, no invented number, and the spec is reported INCOMPLETE |
 | `implementer-stays-in-owned-paths` | the implementer edits only its owned paths and doesn't touch tests to go green |
 | `plan-verifier-flags-unmet-ac` | a deliberately unmet AC is reported NOT MET |
 | `run-plan-asks-for-plan` | `run-plan` without an argument asks instead of dispatching |
 | `workflow-retro-needs-finished-run` | no ledger and no invented numbers without a finished run |
 | `unrelated-request-stays-idle` | an unrelated request triggers no SDD agent or skill |
 
-Run them against the **installed** plugin, not the directory:
+**`claude plugin eval` can't run them yet.** As of Claude Code 2.1.308 it loads the
+target plugin on its own (`sdd-engineering@inline`), without its dependencies, for path
+*and* installed targets alike. Claude Code then disables it as `dependency-unsatisfied`
+("research-tools is not installed"), so no `sdd-engineering` agent or skill exists in the
+run. Every case still produces a score, but it measures nothing. Check the run's init event
+(`plugin_errors`) before trusting a result.
+
+Until that changes, run each case's prompt headless with all four plugins loaded from the
+working tree, in a fresh repository per case, and grade the result against the case's
+`graders/`:
 
 ```sh
-claude plugin eval sdd-engineering@dev-digest-ai-marketplace --scaffold --allow-tools Write Edit "Bash(node *)" "Bash(git *)"
+claude -p "<prompt.md body>" \
+  --plugin-dir <repo>/plugins/engineering-paved-path --plugin-dir <repo>/plugins/research-tools \
+  --plugin-dir <repo>/plugins/architecture-review --plugin-dir <repo>/plugins/sdd-engineering \
+  --allowedTools "Read Glob Grep Agent Skill Write Edit" --output-format stream-json --verbose
 ```
 
-A path target (`claude plugin eval .`) loads only this plugin, without its dependencies;
-Claude Code then disables it as `dependency-unsatisfied`, so no `sdd-engineering` agent or
-skill exists in the run and every case measures nothing. Use a project-scoped install in a
-scratch project if you don't want it in your user scope.
-
-`--scaffold` runs the cases' fixture scripts; `Bash` grants need an OS sandbox (macOS,
-Linux or WSL2). Cases tagged `needs-write`/`needs-shell` need those grants.
-
-For a quick check from the working tree, load all four plugins with `--plugin-dir`:
-
-```sh
-claude --plugin-dir ./plugins/engineering-paved-path --plugin-dir ./plugins/research-tools \
-  --plugin-dir ./plugins/architecture-review --plugin-dir ./plugins/sdd-engineering
-```
+If you also have the plugins installed, disable those copies for the run
+(`--settings '{"enabledPlugins":{"sdd-engineering@dev-digest-ai-marketplace":false,…}}'`),
+or the agents load twice. Cases with a `scaffold.sh` need it run in the case's repository
+first; `Bash` grants need an OS sandbox (macOS, Linux or WSL2).
 
 ## Why the agents are built this way
 
