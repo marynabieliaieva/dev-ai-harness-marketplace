@@ -61,12 +61,14 @@ docs/
   PLUGIN-GUIDELINES.md            # plugin structure, manifest, dependencies
   SECURITY.md                     # secrets, paths, permissions, unsafe-release response
   RELEASES.md                     # SemVer, tags, update, channels, rollback
+  COST-BASELINE.md                # cost of a fixed SDD scenario, before/after one optimization
   SITE-SPEC.md                    # catalog site: routes, index format, search, safety
   temp/                           # working notes, deleted once they've served their purpose
 evals/                            # content/workflow eval engine for plugin skills and agents (vitest + Agent SDK)
 scripts/validate-marketplace.mjs  # structural linter (Node, no dependencies)
 scripts/release.mjs, rollback.mjs # release preflight + tag, rollback as a new PATCH
 scripts/tag-releases.mjs          # tags untagged versions after merge (release-tags.yml)
+scripts/cost/                     # cost experiment runner + analyzer (docs/COST-BASELINE.md)
 scripts/build-index.mjs           # catalog data for the site (index, releases, stats, feed, bodies)
 site/                             # catalog website for GitHub Pages (React + TypeScript + Vite)
 .github/workflows/validate.yml    # "Harness validation" check on every pull request
