@@ -32,6 +32,7 @@ them per task).
 | `zod` | Full-stack | Schema design, parsing, errors, composition, type inference, performance |
 | `typescript-expert` | Full-stack | Type-level programming, strict tsconfig, monorepo setup, type-check performance |
 | `mermaid-diagram` | Shared | Mermaid diagrams in markdown: flowcharts, sequence, ERD, state |
+| `pr-description` | Shared | PR descriptions in a fixed section order with a generated Logic / Tests / Docs change-stat line |
 
 ## How to use them
 
@@ -103,7 +104,18 @@ skill (`pnpm eval:quality`).
 ## Runtime
 
 Everything is markdown except `typescript-expert/scripts/ts_diagnostic.py`, an optional
-helper that needs Python 3. No skill runs code on its own.
+helper that needs Python 3, and `pr-description/scripts/change-stats.sh`, which needs bash
+and git (Git Bash on Windows). No skill runs code on its own.
+
+One hook: `scripts/check-pr-body.sh` (`PreToolUse` on `Bash` and the GitHub MCP
+create/update PR tools) checks PR bodies against `pr-description`. It does nothing until
+`PR_DESCRIPTION_GH_HOST` is set, for example in `.claude/settings.json`:
+
+```json
+{ "env": { "PR_DESCRIPTION_GH_HOST": "github.com" } }
+```
+
+Then it needs bash, git and Node.js on `PATH`; `bash scripts/selftest.sh` checks it.
 
 ## Credits
 
@@ -120,7 +132,7 @@ under an MIT license keep the original `LICENSE` file in their folder.
 | `security`, `mermaid-diagram` | [ai-agentic-engineering-neo/dev-digest](https://github.com/ai-agentic-engineering-neo/dev-digest) course template; OWASP Top 10:2025 categories by the OWASP Foundation (CC BY-SA 4.0) | MIT, © 2026 Ivan Lapa |
 | `react-best-practices`, `react-testing-library` | [burnjohn/ai-demo-marketplace](https://github.com/burnjohn/ai-demo-marketplace) | not stated |
 | `next-best-practices` | [vercel-labs/next-skills](https://github.com/vercel-labs/next-skills) @ `dc1de9c` (now superseded by the skills in [vercel/next.js](https://github.com/vercel/next.js/tree/canary/skills)) | not stated |
-| `onion-architecture`, `frontend-ui-architecture`, `skill-routing` | written for this marketplace | MIT (marketplace license) |
+| `onion-architecture`, `frontend-ui-architecture`, `skill-routing`, `pr-description` | written for this marketplace | MIT (marketplace license) |
 
 ## Versions
 
