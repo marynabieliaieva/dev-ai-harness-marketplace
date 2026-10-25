@@ -42,6 +42,7 @@ Update: `claude plugin marketplace update dev-digest-ai-marketplace`, then
 | [research-tools](plugins/research-tools) | Read-only `researcher` agent with cited repository and web research |
 | [architecture-review](plugins/architecture-review) | Read-only `architecture-reviewer` against the project’s own boundary rules |
 | [engineering-paved-path](plugins/engineering-paved-path) | Shared technical skills (architecture, security, TypeScript, React/Next.js, Fastify, Drizzle, Postgres, Zod) and skill routing |
+| [flaky-fix](plugins/flaky-fix) | Flaky test triage with no extra pipeline runs: scripts, read-only investigator and critic agents, a guard hook; `/flaky-fix:flaky-fix` |
 
 Dependencies between them (installing a plugin enables what it depends on):
 

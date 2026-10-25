@@ -29,6 +29,12 @@
       "source": "./plugins/sdd-engineering",
       "description": "Spec Driven Development workflow: spec-creator, implementation-planner, implementer and plan-verifier agents, /run-plan orchestration and /workflow-retro",
       "category": "development"
+    },
+    {
+      "name": "flaky-fix",
+      "source": "./plugins/flaky-fix",
+      "description": "Flaky test triage without extra pipeline runs: scripts scope the stack trace and candidate commits, read-only agents find the cause and review the fix, a guard hook confines every write",
+      "category": "development"
     }
   ]
 }
