@@ -1,0 +1,9 @@
+{
+  "name": "flaky-fix",
+  "version": "1.0.0",
+  "description": "Flaky test triage without extra pipeline runs: scripts scope the stack trace and candidate commits, read-only agents find the cause and review the fix, a guard hook confines every write to the run's stage",
+  "author": { "name": "DevDigest AI Engineering" },
+  "license": "MIT",
+  "repository": "https://github.com/marynabieliaieva/dev-ai-harness-marketplace",
+  "keywords": ["flaky-tests", "triage", "jira", "git", "hooks", "agents"]
+}
