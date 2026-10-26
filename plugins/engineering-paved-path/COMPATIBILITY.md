@@ -15,5 +15,7 @@ name: that is a MAJOR release.
 
 ## Runtime
 
-`typescript-expert/scripts/ts_diagnostic.py` needs Python 3; nothing else in the plugin runs
-code.
+`typescript-expert/scripts/ts_diagnostic.py` needs Python 3; `pr-description/scripts/change-stats.sh`
+needs bash 4+ and git (Git Bash on Windows). The `check-pr-body.sh` hook exits at once
+unless `PR_DESCRIPTION_GH_HOST` is set; then it needs bash, git and Node.js 18+. Nothing else
+in the plugin runs code.
